@@ -23,8 +23,8 @@ jobs:
               with:
                   target_repo_token: ${{ secrets.GITHUB_TOKEN }}
                   upstream_sync_repo: YueChan/Live
-                  upstream_sync_branch: main/IPTV.m3u
-                  target_sync_branch: main/IPTV.m3u
+                  upstream_sync_branch: main$IPTV.m3u
+                  target_sync_branch: main$IPTV.m3u
                   test_mode: false
 
             - name: Check for Failure
