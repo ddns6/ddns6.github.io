@@ -12,7 +12,6 @@
  <a href="https://magisk.suchenqaq.club/">DDNS跳跳</a></td></h6>
  <h6><td>ROM：
  <a href="https://xiaomirom.com/">官方ROM</a>
- <a href="https://www.123pan.com/s/zGW7Vv-4koD3.html">小米6</a>
  <a href="https://www.123pan.com/s/zGW7Vv-1koD3.html">小米9</a>
  <a href="https://www.123pan.com/s/zGW7Vv-xkoD3.html">红米K60</a></td></h6>
  <h6><td>米9官改及类原：
@@ -49,8 +48,7 @@
   <tbody>
     <tr>
       <td><a href="https://github.com/YueChan/Live/raw/main/IPTV.m3u">YueChan</a>
-          <a href="https://live.fanmingming.com/tv/m3u/ipv6.m3u">范明明</a>
-          <a href="https://github.com/koogg/Xlive/raw/main/IPTV6.m3u">Xlive</a></td>
+          <a href="https://live.fanmingming.com/tv/m3u/ipv6.m3u">范明明</a></td>
       <td><a href="https://televizo.net">安卓</a>
           <a href="https://apps.apple.com/cn/app/aptv/id1630403500">苹果</a>
           <a href="https://potplayer.tv/?lang=zh_CN">电脑</a></td>
@@ -67,7 +65,7 @@
 - 特别鸣谢
   <a href="https://github.com/YueChan/Live/">YueChan</a>
   <a href="https://github.com/fanmingming/live/">范明明</a>
-  <a href="https://github.com/koogg/Xlive/">Xlive</a>
+  <a href="https://ap-northeast-1.run.claw.cloud">Claw</a>
   <u>GitHub及其他互联网资源</u>🎈
   
 <p align="center">
