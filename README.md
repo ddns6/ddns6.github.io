@@ -46,7 +46,7 @@
   <tbody>
     <tr>
       <td><a href="https://github.com/YueChan/Live/raw/main/IPTV.m3u">YueChan</a>
-          <a href="https://live.fanmingming.com/tv/m3u/ipv6.m3u">范明明</a></td>
+          <a href="https://github.com/fanmingming/live/raw/refs/heads/main/tv/m3u/ipv6.m3u">范明明</a></td>
       <td><a href="https://televizo.net">安卓</a>
           <a href="https://apps.apple.com/cn/app/aptv/id1630403500">苹果</a>
           <a href="https://potplayer.tv/?lang=zh_CN">电脑</a></td>
@@ -62,7 +62,7 @@
 ## 💡致谢：
 - 特别鸣谢
   <a href="https://github.com/YueChan/Live/">YueChan</a>
-  <a href="https://github.com/fanmingming/live/raw/refs/heads/main/tv/m3u/ipv6.m3u">范明明</a>
+  <a href="https://github.com/fanmingming/live/">范明明</a>
   <a href="https://console.run.claw.cloud/signin?link=E0K91K98JSZW">Claw</a>
   <u>GitHub及其他互联网资源</u>🎈
   
