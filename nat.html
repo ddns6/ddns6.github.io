@@ -21,7 +21,7 @@ h2{color:#38bdf8;margin-bottom:20px;text-align:center}
 <div class="item"><span class="label">本机公网IP：</span><span class="val" id="ip">检测中...</span></div>
 <div class="item"><span class="label">外网端口：</span><span class="val" id="port">检测中...</span></div>
 <div class="item"><span class="label">NAT类型：</span><span class="val load" id="nat">识别中...</span></div>
-<div class="item"><span class="label">网络环境：</span><span class="val" id="net"></span></div>
+<div class="item"><span class="label">网络环境：</span><span class="val" id="net">检测中...</span></div>
 <div class="item"><span class="label">UPNP状态：</span><span class="val" id="upnp">暂不支持前端探测</span></div>
 
 <div class="tip">
@@ -40,20 +40,39 @@ let portEl=document.getElementById('port')
 let natEl=document.getElementById('nat')
 let netEl=document.getElementById('net')
 
-// 获取公网IP
-fetch('https://api.ipify.org?format=json')
-.then(r=>r.json())
-.then(d=>{
-    ipEl.innerText=d.ip
-    judgeNet(d.ip)
-})
+// 带超时+备用接口的IP获取
+async function getPublicIP(){
+    const apis = [
+        'https://api.ipify.org?format=json',
+        'https://httpbin.org/ip',
+        'https://icanhazip.com'
+    ]
+    for (const api of apis) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            const res = await fetch(api, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            if (api.includes('icanhazip')) {
+                const text = await res.text();
+                return text.trim();
+            } else {
+                const data = await res.json();
+                return data.ip || data.origin;
+            }
+        } catch (e) {
+            continue;
+        }
+    }
+    return '获取失败';
+}
 
 // WebRTC探测NAT&端口
 function getNAT(){
-    return new Promise(res=>{
+    return new Promise((res, rej)=>{
         const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]})
-        pc.createDataChannel('')
-        pc.createOffer().then(o=>pc.setLocalDescription(o))
+        pc.createDataChannel('test')
+        pc.createOffer().then(o=>pc.setLocalDescription(o)).catch(rej)
         pc.onicecandidate=e=>{
             if(!e.candidate){
                 pc.close()
@@ -63,23 +82,36 @@ function getNAT(){
             let arr=cand.split(' ')
             let type=arr[7]
             let p=arr[5]
-            res({type:type,port:p})
             pc.close()
+            res({type:type,port:p})
         }
+        setTimeout(()=>{
+            pc.close()
+            rej('超时')
+        },5000)
     })
 }
 
 function judgeNet(ip){
-    if(ip.startsWith('10.')||ip.startsWith('172.16')||ip.startsWith('192.168.')){
+    if(ip.startsWith('10.')||ip.startsWith('172.16')||ip.startsWith('172.17')||ip.startsWith('172.18')||ip.startsWith('172.19')||ip.startsWith('172.20')||ip.startsWith('172.21')||ip.startsWith('172.22')||ip.startsWith('172.23')||ip.startsWith('172.24')||ip.startsWith('172.25')||ip.startsWith('172.26')||ip.startsWith('172.27')||ip.startsWith('172.28')||ip.startsWith('172.29')||ip.startsWith('172.30')||ip.startsWith('172.31')||ip.startsWith('192.168.')){
         netEl.innerText='内网IP（多层NAT）'
+    }else if(ip.includes('获取失败')){
+        netEl.innerText='无法判断网络环境'
     }else{
         netEl.innerText='公网IP（无多层转发）'
     }
 }
 
-getNAT().then(res=>{
-    portEl.innerText=res.port
-    switch(res.type){
+// 并行执行IP和NAT检测
+Promise.all([
+    getPublicIP(),
+    getNAT().catch(()=>({type:'unknown',port:'获取失败'}))
+]).then(([ipRes, natRes])=>{
+    ipEl.innerText = ipRes;
+    judgeNet(ipRes);
+
+    portEl.innerText = natRes.port;
+    switch(natRes.type){
         case 'host':
             natEl.innerText='✅ 完全锥形NAT / 公网直连'
             natEl.style.color='#4ade80'
@@ -97,7 +129,8 @@ getNAT().then(res=>{
             natEl.style.color='#f87171'
             break
         default:
-            natEl.innerText='未知NAT类型'
+            natEl.innerText='未知NAT类型或检测失败'
+            natEl.style.color='#94a3b8'
     }
 })
 </script>
