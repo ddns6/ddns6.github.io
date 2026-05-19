@@ -63,7 +63,6 @@
 - 特别鸣谢
   <a href="https://github.com/YueChan/Live/">YueChan</a>
   <a href="https://github.com/fanmingming/live/">范明明</a>
-  <a href="https://console.run.claw.cloud/signin?link=E0K91K98JSZW">Claw</a>
   <u>GitHub及其他互联网资源</u>🎈
   
 <p align="center">
