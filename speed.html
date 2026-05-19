@@ -103,6 +103,8 @@ navButtons.forEach(btn => {
         const url = btn.dataset.url;
         mainFrame.src = url;
     });
+}); // 这里补全了之前漏掉的闭合括号！
+
 // 加载完成隐藏提示
 mainFrame.onload = function(){
     loading.style.display = 'none';
