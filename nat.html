@@ -2,152 +2,301 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>网络NAT类型（仅IPv4）检测工具</title>
+<title>NAT类型检测（对标dyebean.com）</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:微软雅黑;background:#0f172a;color:#e2e8f0;padding:20px}
-.box{max-width:700px;margin:0 auto;background:#1e293b;padding:25px;border-radius:12px}
-h2{color:#38bdf8;margin-bottom:20px;text-align:center}
-.item{padding:12px 0;border-bottom:1px solid #334155}
-.label{color:#94a3b8}
-.val{color:#22d3ee;font-weight:bold;margin-left:10px}
-.tip{margin-top:15px;padding:10px;background:#1e3a5f;border-radius:6px;font-size:14px}
-.load{color:#facc15}
+:root {
+    --bg: #0d1117;
+    --card: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --muted: #8b949e;
+    --success: #3fb950;
+    --warn: #d29922;
+    --danger: #f85149;
+    --blue: #58a6ff;
+}
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 20px;
+    min-height: 100vh;
+}
+.container {
+    max-width: 500px;
+    margin: 0 auto;
+}
+.card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 30px 24px;
+    border: 1px solid var(--border);
+    text-align: center;
+}
+.grade-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #21262d;
+    margin: 0 auto 24px;
+    display: grid;
+    place-items: center;
+    font-size: 48px;
+    font-weight: bold;
+    color: var(--warn);
+}
+.nat-title {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+.nat-desc {
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+.status-tag {
+    display: inline-block;
+    background: rgba(210, 153, 34, 0.15);
+    color: var(--warn);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    margin-bottom: 32px;
+}
+.info-row {
+    background: #21262d;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 12px;
+    text-align: left;
+}
+.info-label {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+.info-value {
+    font-size: 18px;
+    font-weight: 500;
+    word-break: break-all;
+}
+.btn {
+    margin-top: 24px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #21262d;
+    color: var(--text);
+    font-size: 16px;
+    cursor: pointer;
+}
+.btn:hover {
+    background: #30363d;
+}
 </style>
 </head>
 <body>
-<div class="box">
-<h2>网络 NAT 类型在线检测（仅IPv4）</h2>
-<div class="item"><span class="label">本机IPv4公网IP：</span><span class="val" id="ip">检测中...</span></div>
-<div class="item"><span class="label">外网端口：</span><span class="val" id="port">检测中...</span></div>
-<div class="item"><span class="label">NAT类型：</span><span class="val load" id="nat">识别中...</span></div>
-<div class="item"><span class="label">网络环境：</span><span class="val" id="net">检测中...</span></div>
-<div class="item"><span class="label">UPNP状态：</span><span class="val" id="upnp">暂不支持前端探测</span></div>
+<div class="container">
+    <div class="card">
+        <div class="grade-circle" id="grade">检测中</div>
+        <div class="nat-title" id="natTitle">NAT 类型检测中</div>
+        <div class="nat-desc" id="natDesc">正在探测你的网络NAT结构，请稍候...</div>
+        <div class="status-tag" id="status">检测中...</div>
 
-<div class="tip">
-<b>NAT结果说明</b><br>
-• 完全锥形NAT：全连通，P2P/组网最优<br>
-• 限制锥形NAT：常用家用路由，联机正常<br>
-• 端口限制锥形：部分P2P受限<br>
-• 对称NAT：严格封禁，无法P2P/异地组网<br>
-• 公网IP：无NAT，端口直连
-</div>
+        <div class="info-row">
+            <div class="info-label">公网 IP</div>
+            <div class="info-value" id="publicIp">--</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">本地 IP (内网)</div>
+            <div class="info-value" id="localIp">--</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">STUN 服务器</div>
+            <div class="info-value" id="stunServer">stun.miwifi.com:3478</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">检测耗时</div>
+            <div class="info-value" id="costTime">--</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">ICE 候选项详情</div>
+            <div class="info-value" id="iceDetail">--</div>
+        </div>
+
+        <button class="btn" onclick="startDetect()">🔄 重新检测</button>
+    </div>
 </div>
 
 <script>
-let ipEl=document.getElementById('ip')
-let portEl=document.getElementById('port')
-let natEl=document.getElementById('nat')
-let netEl=document.getElementById('net')
+const el = {
+    grade: document.getElementById('grade'),
+    natTitle: document.getElementById('natTitle'),
+    natDesc: document.getElementById('natDesc'),
+    status: document.getElementById('status'),
+    publicIp: document.getElementById('publicIp'),
+    localIp: document.getElementById('localIp'),
+    stunServer: document.getElementById('stunServer'),
+    costTime: document.getElementById('costTime'),
+    iceDetail: document.getElementById('iceDetail'),
+}
 
-// 仅获取IPv4公网IP（强制用IPv4接口）
-async function getPublicIPv4(){
+const stunServers = [
+    {url: 'stun:stun.miwifi.com:3478'},
+    {url: 'stun:stun.l.google.com:19302'}
+]
+
+function parseIceCandidate(candidate) {
+    const parts = candidate.split(' ');
+    const type = parts[7];
+    const ip = parts[4];
+    const port = parts[5];
+    return { type, ip, port };
+}
+
+function isPrivateIPv4(ip) {
+    return (
+        ip.startsWith('10.') ||
+        (ip.startsWith('172.') && parseInt(ip.split('.')[1], 10) >= 16 && parseInt(ip.split('.')[1], 10) <= 31) ||
+        ip.startsWith('192.168.')
+    );
+}
+
+async function detectNAT() {
+    return new Promise((resolve, reject) => {
+        const pc = new RTCPeerConnection({
+            iceServers: stunServers,
+            iceTransportPolicy: 'all'
+        });
+
+        let candidates = [];
+        let startTime = Date.now();
+
+        pc.createDataChannel('nat-test');
+        pc.createOffer()
+            .then(offer => pc.setLocalDescription(offer))
+            .catch(reject);
+
+        pc.onicecandidate = (e) => {
+            if (!e.candidate) return;
+            const c = parseIceCandidate(e.candidate.candidate);
+            if (!c.ip || c.ip.includes(':')) return; // 只留IPv4
+            candidates.push(c);
+        };
+
+        pc.onicegatheringstatechange = () => {
+            if (pc.iceGatheringState === 'complete') {
+                pc.close();
+                let hostCandidates = candidates.filter(x => x.type === 'host');
+                let srflxCandidates = candidates.filter(x => x.type === 'srflx');
+
+                let localIp = hostCandidates[0]?.ip || '未知';
+                let publicIp = srflxCandidates[0]?.ip || '未知';
+                let publicPort = srflxCandidates[0]?.port || '未知';
+
+                let natType = '未知';
+                let grade = '?';
+                let desc = '';
+
+                if (publicIp && isPrivateIPv4(publicIp)) {
+                    natType = '对称NAT (NAT3/4)';
+                    grade = 'C';
+                    desc = '运营商CGNAT或对称NAT，P2P联机/异地组网会受限。';
+                } else if (srflxCandidates.length > 0 && hostCandidates.length > 0) {
+                    natType = '受限锥形NAT (NAT2)';
+                    grade = 'B';
+                    desc = '受限锥形NAT，大部分应用可正常使用，少数P2P场景可能受限。';
+                } else if (srflxCandidates.length === 0 && hostCandidates.length > 0 && !isPrivateIPv4(hostCandidates[0].ip)) {
+                    natType = '完全锥形NAT / 公网直连 (NAT1)';
+                    grade = 'A';
+                    desc = '全连通公网环境，P2P联机/异地组网无限制，体验最佳。';
+                } else {
+                    natType = '对称NAT / 严格NAT (NAT3/4)';
+                    grade = 'C';
+                    desc = '严格对称NAT，多数P2P应用无法正常工作。';
+                }
+
+                resolve({
+                    grade,
+                    natType,
+                    desc,
+                    localIp,
+                    publicIp,
+                    publicPort,
+                    cost: Date.now() - startTime,
+                    iceTypes: [...new Set(candidates.map(x => x.type))].join(', ')
+                });
+            }
+        };
+
+        setTimeout(() => {
+            pc.close();
+            reject('检测超时');
+        }, 15000);
+    });
+}
+
+async function getPublicIPv4() {
     const apis = [
         'https://api.ipify.org?format=json',
-        'https://ipv4.icanhazip.com',
-        'https://httpbin.org/ip'
-    ]
+        'https://ipv4.icanhazip.com'
+    ];
     for (const api of apis) {
         try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 3000);
-            const res = await fetch(api, { signal: controller.signal });
-            clearTimeout(timeoutId);
+            const res = await fetch(api, { signal: AbortSignal.timeout(3000) });
             if (api.includes('icanhazip')) {
-                const text = await res.text();
-                return text.trim();
+                return await res.text();
             } else {
-                const data = await res.json();
-                return data.ip || data.origin;
+                const d = await res.json();
+                return d.ip;
             }
-        } catch (e) {
-            continue;
-        }
+        } catch (e) { continue; }
     }
     return '获取失败';
 }
 
-// WebRTC仅探测IPv4的NAT&端口（强制用IPv4 STUN）
-function getNATv4(){
-    return new Promise((res, rej)=>{
-        const pc=new RTCPeerConnection({
-            iceServers: [{urls:'stun:stun.l.google.com:19302'}],
-            iceTransportPolicy: 'all',
-            rtcpMuxPolicy: 'require'
-        })
-        pc.createDataChannel('test')
-        pc.createOffer().then(o=>pc.setLocalDescription(o)).catch(rej)
-        
-        let found = false
-        pc.onicecandidate=e=>{
-            if(!e.candidate || found) return
-            let cand = e.candidate.candidate
-            // 只取IPv4类型的候选
-            if(cand.includes(' udp ')){
-                let arr = cand.split(' ')
-                let ip = arr[4]
-                let type = arr[7]
-                let p = arr[5]
-                // 排除IPv6和内网地址
-                if(ip && !ip.includes(':') && !ip.startsWith('192.168.') && !ip.startsWith('10.') && !(ip.startsWith('172.') && parseInt(ip.split('.')[1])>=16 && parseInt(ip.split('.')[1])<=31)){
-                    found = true
-                    pc.close()
-                    res({type:type,port:p})
-                }
-            }
+async function startDetect() {
+    el.grade.textContent = '检测中';
+    el.natTitle.textContent = 'NAT 类型检测中';
+    el.natDesc.textContent = '正在探测你的网络NAT结构，请稍候...';
+    el.status.textContent = '检测中...';
+    el.publicIp.textContent = '--';
+    el.localIp.textContent = '--';
+    el.costTime.textContent = '--';
+    el.iceDetail.textContent = '--';
+
+    try {
+        const [natRes, ipRes] = await Promise.all([detectNAT(), getPublicIPv4()]);
+        el.grade.textContent = natRes.grade;
+        el.natTitle.textContent = natRes.natType;
+        el.natDesc.textContent = natRes.desc;
+        el.status.textContent = '连通性良好';
+        el.publicIp.textContent = ipRes || natRes.publicIp;
+        el.localIp.textContent = natRes.localIp;
+        el.costTime.textContent = `${natRes.cost}ms`;
+        el.iceDetail.textContent = `候选项类型: ${natRes.iceTypes}\nServer Reflexive: ${natRes.publicIp}:${natRes.publicPort}`;
+
+        if (natRes.grade === 'A') {
+            el.grade.style.color = 'var(--success)';
+        } else if (natRes.grade === 'B') {
+            el.grade.style.color = 'var(--warn)';
+        } else {
+            el.grade.style.color = 'var(--danger)';
         }
-        setTimeout(()=>{
-            if(!found){
-                pc.close()
-                rej('未找到IPv4 NAT信息')
-            }
-        },5000)
-    })
-}
-
-function judgeNet(ip){
-    if(ip.startsWith('10.')||
-       (ip.startsWith('172.') && parseInt(ip.split('.')[1])>=16 && parseInt(ip.split('.')[1])<=31)||
-       ip.startsWith('192.168.')){
-        netEl.innerText='内网IPv4（运营商CGNAT/多层NAT）'
-    }else if(ip.includes('获取失败')){
-        netEl.innerText='无法判断IPv4网络环境'
-    }else{
-        netEl.innerText='公网IPv4（无多层转发）'
+    } catch (err) {
+        el.natTitle.textContent = '检测失败';
+        el.natDesc.textContent = err.message;
+        el.status.textContent = '检测失败';
     }
 }
 
-// 并行执行IPv4 IP和NAT检测
-Promise.all([
-    getPublicIPv4(),
-    getNATv4().catch(()=>({type:'unknown',port:'获取失败'}))
-]).then(([ipRes, natRes])=>{
-    ipEl.innerText = ipRes;
-    judgeNet(ipRes);
-
-    portEl.innerText = natRes.port;
-    switch(natRes.type){
-        case 'host':
-            natEl.innerText='✅ 完全锥形NAT / 公网直连'
-            natEl.style.color='#4ade80'
-            break
-        case 'srflx':
-            natEl.innerText='🟢 限制锥形NAT（家用正常）'
-            natEl.style.color='#60a5fa'
-            break
-        case 'prflx':
-            natEl.innerText='🟡 端口限制锥形NAT'
-            natEl.style.color='#facc15'
-            break
-        case 'relay':
-            natEl.innerText='🔴 对称NAT / 严格NAT'
-            natEl.style.color='#f87171'
-            break
-        default:
-            natEl.innerText='未知NAT类型或IPv4检测失败'
-            natEl.style.color='#94a3b8'
-    }
-})
+startDetect();
 </script>
 </body>
 </html>
