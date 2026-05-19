@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<title>网络NAT类型检测工具</title>
+<title>网络NAT类型（仅IPv4）检测工具</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:微软雅黑;background:#0f172a;color:#e2e8f0;padding:20px}
@@ -17,8 +17,8 @@ h2{color:#38bdf8;margin-bottom:20px;text-align:center}
 </head>
 <body>
 <div class="box">
-<h2>网络 NAT 类型在线检测</h2>
-<div class="item"><span class="label">本机公网IP：</span><span class="val" id="ip">检测中...</span></div>
+<h2>网络 NAT 类型在线检测（仅IPv4）</h2>
+<div class="item"><span class="label">本机IPv4公网IP：</span><span class="val" id="ip">检测中...</span></div>
 <div class="item"><span class="label">外网端口：</span><span class="val" id="port">检测中...</span></div>
 <div class="item"><span class="label">NAT类型：</span><span class="val load" id="nat">识别中...</span></div>
 <div class="item"><span class="label">网络环境：</span><span class="val" id="net">检测中...</span></div>
@@ -40,12 +40,12 @@ let portEl=document.getElementById('port')
 let natEl=document.getElementById('nat')
 let netEl=document.getElementById('net')
 
-// 带超时+备用接口的IP获取
-async function getPublicIP(){
+// 仅获取IPv4公网IP（强制用IPv4接口）
+async function getPublicIPv4(){
     const apis = [
         'https://api.ipify.org?format=json',
-        'https://httpbin.org/ip',
-        'https://icanhazip.com'
+        'https://ipv4.icanhazip.com',
+        'https://httpbin.org/ip'
     ]
     for (const api of apis) {
         try {
@@ -67,45 +67,60 @@ async function getPublicIP(){
     return '获取失败';
 }
 
-// WebRTC探测NAT&端口
-function getNAT(){
+// WebRTC仅探测IPv4的NAT&端口（强制用IPv4 STUN）
+function getNATv4(){
     return new Promise((res, rej)=>{
-        const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]})
+        const pc=new RTCPeerConnection({
+            iceServers: [{urls:'stun:stun.l.google.com:19302'}],
+            iceTransportPolicy: 'all',
+            rtcpMuxPolicy: 'require'
+        })
         pc.createDataChannel('test')
         pc.createOffer().then(o=>pc.setLocalDescription(o)).catch(rej)
+        
+        let found = false
         pc.onicecandidate=e=>{
-            if(!e.candidate){
-                pc.close()
-                return
+            if(!e.candidate || found) return
+            let cand = e.candidate.candidate
+            // 只取IPv4类型的候选
+            if(cand.includes(' udp ')){
+                let arr = cand.split(' ')
+                let ip = arr[4]
+                let type = arr[7]
+                let p = arr[5]
+                // 排除IPv6和内网地址
+                if(ip && !ip.includes(':') && !ip.startsWith('192.168.') && !ip.startsWith('10.') && !(ip.startsWith('172.') && parseInt(ip.split('.')[1])>=16 && parseInt(ip.split('.')[1])<=31)){
+                    found = true
+                    pc.close()
+                    res({type:type,port:p})
+                }
             }
-            let cand=e.candidate.candidate
-            let arr=cand.split(' ')
-            let type=arr[7]
-            let p=arr[5]
-            pc.close()
-            res({type:type,port:p})
         }
         setTimeout(()=>{
-            pc.close()
-            rej('超时')
+            if(!found){
+                pc.close()
+                rej('未找到IPv4 NAT信息')
+            }
         },5000)
     })
 }
 
 function judgeNet(ip){
-    if(ip.startsWith('10.')||ip.startsWith('172.16')||ip.startsWith('172.17')||ip.startsWith('172.18')||ip.startsWith('172.19')||ip.startsWith('172.20')||ip.startsWith('172.21')||ip.startsWith('172.22')||ip.startsWith('172.23')||ip.startsWith('172.24')||ip.startsWith('172.25')||ip.startsWith('172.26')||ip.startsWith('172.27')||ip.startsWith('172.28')||ip.startsWith('172.29')||ip.startsWith('172.30')||ip.startsWith('172.31')||ip.startsWith('192.168.')){
-        netEl.innerText='内网IP（多层NAT）'
+    if(ip.startsWith('10.')||
+       (ip.startsWith('172.') && parseInt(ip.split('.')[1])>=16 && parseInt(ip.split('.')[1])<=31)||
+       ip.startsWith('192.168.')){
+        netEl.innerText='内网IPv4（运营商CGNAT/多层NAT）'
     }else if(ip.includes('获取失败')){
-        netEl.innerText='无法判断网络环境'
+        netEl.innerText='无法判断IPv4网络环境'
     }else{
-        netEl.innerText='公网IP（无多层转发）'
+        netEl.innerText='公网IPv4（无多层转发）'
     }
 }
 
-// 并行执行IP和NAT检测
+// 并行执行IPv4 IP和NAT检测
 Promise.all([
-    getPublicIP(),
-    getNAT().catch(()=>({type:'unknown',port:'获取失败'}))
+    getPublicIPv4(),
+    getNATv4().catch(()=>({type:'unknown',port:'获取失败'}))
 ]).then(([ipRes, natRes])=>{
     ipEl.innerText = ipRes;
     judgeNet(ipRes);
@@ -129,7 +144,7 @@ Promise.all([
             natEl.style.color='#f87171'
             break
         default:
-            natEl.innerText='未知NAT类型或检测失败'
+            natEl.innerText='未知NAT类型或IPv4检测失败'
             natEl.style.color='#94a3b8'
     }
 })
