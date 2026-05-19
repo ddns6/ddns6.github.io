@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>网络NAT类型检测工具</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:微软雅黑;background:#0f172a;color:#e2e8f0;padding:20px}
+.box{max-width:700px;margin:0 auto;background:#1e293b;padding:25px;border-radius:12px}
+h2{color:#38bdf8;margin-bottom:20px;text-align:center}
+.item{padding:12px 0;border-bottom:1px solid #334155}
+.label{color:#94a3b8}
+.val{color:#22d3ee;font-weight:bold;margin-left:10px}
+.tip{margin-top:15px;padding:10px;background:#1e3a5f;border-radius:6px;font-size:14px}
+.load{color:#facc15}
+</style>
+</head>
+<body>
+<div class="box">
+<h2>网络 NAT 类型在线检测</h2>
+<div class="item"><span class="label">本机公网IP：</span><span class="val" id="ip">检测中...</span></div>
+<div class="item"><span class="label">外网端口：</span><span class="val" id="port">检测中...</span></div>
+<div class="item"><span class="label">NAT类型：</span><span class="val load" id="nat">识别中...</span></div>
+<div class="item"><span class="label">网络环境：</span><span class="val" id="net"></span></div>
+<div class="item"><span class="label">UPNP状态：</span><span class="val" id="upnp">暂不支持前端探测</span></div>
+
+<div class="tip">
+<b>NAT结果说明</b><br>
+• 完全锥形NAT：全连通，P2P/组网最优<br>
+• 限制锥形NAT：常用家用路由，联机正常<br>
+• 端口限制锥形：部分P2P受限<br>
+• 对称NAT：严格封禁，无法P2P/异地组网<br>
+• 公网IP：无NAT，端口直连
+</div>
+</div>
+
+<script>
+let ipEl=document.getElementById('ip')
+let portEl=document.getElementById('port')
+let natEl=document.getElementById('nat')
+let netEl=document.getElementById('net')
+
+// 获取公网IP
+fetch('https://api.ipify.org?format=json')
+.then(r=>r.json())
+.then(d=>{
+    ipEl.innerText=d.ip
+    judgeNet(d.ip)
+})
+
+// WebRTC探测NAT&端口
+function getNAT(){
+    return new Promise(res=>{
+        const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]})
+        pc.createDataChannel('')
+        pc.createOffer().then(o=>pc.setLocalDescription(o))
+        pc.onicecandidate=e=>{
+            if(!e.candidate){
+                pc.close()
+                return
+            }
+            let cand=e.candidate.candidate
+            let arr=cand.split(' ')
+            let type=arr[7]
+            let p=arr[5]
+            res({type:type,port:p})
+            pc.close()
+        }
+    })
+}
+
+function judgeNet(ip){
+    if(ip.startsWith('10.')||ip.startsWith('172.16')||ip.startsWith('192.168.')){
+        netEl.innerText='内网IP（多层NAT）'
+    }else{
+        netEl.innerText='公网IP（无多层转发）'
+    }
+}
+
+getNAT().then(res=>{
+    portEl.innerText=res.port
+    switch(res.type){
+        case 'host':
+            natEl.innerText='✅ 完全锥形NAT / 公网直连'
+            natEl.style.color='#4ade80'
+            break
+        case 'srflx':
+            natEl.innerText='🟢 限制锥形NAT（家用正常）'
+            natEl.style.color='#60a5fa'
+            break
+        case 'prflx':
+            natEl.innerText='🟡 端口限制锥形NAT'
+            natEl.style.color='#facc15'
+            break
+        case 'relay':
+            natEl.innerText='🔴 对称NAT / 严格NAT'
+            natEl.style.color='#f87171'
+            break
+        default:
+            natEl.innerText='未知NAT类型'
+    }
+})
+</script>
+</body>
+</html>
