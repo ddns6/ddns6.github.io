@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>获取本机公网IPv4+IPv6</title>
+    <style>
+        body {font-family: system-ui; padding: 30px; background:#f5f5f5}
+        .box{background:#fff;padding:20px;border-radius:8px;max-width:600px}
+        .item{margin:12px 0;font-size:16px}
+        label{display:inline-block;width:60px;font-weight:bold}
+    </style>
+</head>
+<body>
+<div class="box">
+    <div class="item">
+        <label>IPv4：</label>
+        <span id="ip4">加载中...</span>
+    </div>
+    <div class="item">
+        <label>IPv6：</label>
+        <span id="ip6">加载中...</span>
+    </div>
+</div>
+
+<script>
+// 封装获取IP函数
+async function getIp(url, domId) {
+    try {
+        const res = await fetch(url, {mode: 'cors'});
+        if (!res.ok) throw new Error('获取失败');
+        const ip = await res.text();
+        document.getElementById(domId).innerText = ip.trim() || '未获取到';
+    } catch (err) {
+        document.getElementById(domId).innerText = '当前网络无该地址';
+    }
+}
+
+// 同时请求两个接口
+getIp('https://ipv4.ddnspod.com', 'ip4');
+getIp('https://ipv6.ddnspod.com', 'ip6');
+//getIp('https://ipv4.ddnspod.com', 'ip4');
+//getIp('https://ipv6.ddnspod.com', 'ip6');
+</script>
+</body>
+</html>
