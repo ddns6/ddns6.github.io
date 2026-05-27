@@ -13,12 +13,16 @@
 <body>
 <div class="box">
     <div class="item">
-        <label>pod4：</label>
-        <span id="ip4">加载中...</span>
+        <label>ddnspod：</label>
+        <span id="pod4">加载中...</span>
+        <span id="pod6">加载中...</span>
     </div>
+</div>
+<div class="box">
     <div class="item">
-        <label>pod6：</label>
-        <span id="ip6">加载中...</span>
+        <label>ident：</label>
+        <span id="dent4">加载中...</span>
+        <span id="dent6">加载中...</span>
     </div>
 </div>
 
@@ -36,10 +40,10 @@ async function getIp(url, domId) {
 }
 
 // 同时请求两个接口
-getIp('https://ipv4.ddnspod.com', 'ip4');
-getIp('https://ipv6.ddnspod.com', 'ip6');
-//getIp('https://ipv4.ddnspod.com', 'ip4');
-//getIp('https://ipv6.ddnspod.com', 'ip6');
+getIp('https://ipv4.ddnspod.com', 'pod4');
+getIp('https://ipv6.ddnspod.com', 'pod6');
+getIp('https://4.ident.me', 'dent4');
+getIp('https://6.ident.me', 'dent6');
 </script>
 </body>
 </html>
