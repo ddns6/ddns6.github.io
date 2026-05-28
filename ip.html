@@ -31,7 +31,6 @@
             align-items: center;
             flex-wrap: nowrap;
             gap: 15px;
-            /* 自适应字号，完整容纳文字，最小12px最大18px */
             font-size: clamp(12px, calc((100% - 20px)/76), 18px);
         }
         label {
@@ -47,7 +46,6 @@
         }
         span {
             white-space: nowrap;
-            /* 关闭省略号，完整显示 */
             text-overflow: unset;
             overflow: visible;
         }
@@ -163,12 +161,11 @@
             })
         }
 
-        // 原始全部STUN节点
+        // 全部STUN节点
         const ALL_STUN = [
             "stun:global.stun.twilio.com:3478",
             "stun:stun.voipbuster.com:3478",
             "stun:stun.miwifi.com:3478",
-            "stun:stun.cloudflare.com:3478",
             "stun:stun.l.google.com:19302"
         ];
         // 节点别名映射
@@ -176,7 +173,6 @@
             "stun:global.stun.twilio.com:3478": "twilio",
             "stun:stun.voipbuster.com:3478": "voipbuster",
             "stun:stun.miwifi.com:3478": "miwifi",
-            "stun:stun.cloudflare.com:3478": "cloudflare",
             "stun:stun.l.google.com:19302": "google"
         };
 
@@ -192,8 +188,8 @@
 
         async function checkNatTypeFull() {
             const localIp = await getLocalIp();
-            // 随机洗牌，截取前2个节点参与检测
-            const randomStunList = shuffleArray(ALL_STUN).slice(0, 1);
+            // 固定选取至少2个STUN节点，满足判断条件
+            const randomStunList = shuffleArray(ALL_STUN).slice(0, 2);
             const testResults = [];
             const successStunNames = [];
 
@@ -206,20 +202,31 @@
             }
 
             const validResults = testResults.filter(item => item !== null);
-            if (validResults.length === 0) return "UDP被防火墙拦截，无公网映射";
+            // 有效节点不足两个，无法准确判断NAT类型
+            if (validResults.length < 2) return "STUN节点探测失败，无法判定NAT类型";
 
             const first = validResults[0];
             let natText = "";
-            if (localIp === first.ip) natText = "NAT1 全锥型公网IP";
-            else {
+            // NAT1：映射公网IP和内网IP完全一致，全锥型
+            if (localIp === first.ip) {
+                natText = "NAT1 全锥型公网IP";
+            } else {
                 const portSet = new Set(validResults.map(i => i.port));
-                if (portSet.size === 1) natText = "NAT2 受限锥形NAT";
-                else {
-                    const ipSet = new Set(validResults.map(i => i.ip));
-                    natText = ipSet.size === 1 ? "NAT3 端口受限锥形CGNAT" : "NAT4 对称NAT（严格CGN）";
+                const ipSet = new Set(validResults.map(i => i.ip));
+                // NAT2：所有外网端口一致，受限锥形
+                if (portSet.size === 1) {
+                    natText = "NAT2 受限锥形NAT";
+                } else {
+                    // IP相同端口不同：NAT3端口受限锥形
+                    if (ipSet.size === 1) {
+                        natText = "NAT3 端口受限锥形CGNAT";
+                    } else {
+                        // IP端口全部变化：NAT4对称NAT
+                        natText = "NAT4 对称NAT（严格CGN）";
+                    }
                 }
             }
-            return `${natText}  |  ${successStunNames.join(',')}`;
+            return `${natText}   |   ${successStunNames.join(',')}`;
         }
 
         function renderIp(labelDom, dom4Id, dom6Id, ipData) {
