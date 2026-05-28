@@ -30,7 +30,7 @@
             display: flex;
             align-items: center;
             flex-wrap: nowrap;
-            gap: 15px;/*标签v4间距*/
+            gap: 5px;
             font-size: clamp(12px, calc((100% - 10px * 2) / 74), 18px);
         }
         label {
@@ -56,6 +56,9 @@
             background: #fff;
             padding: 8px;
         }
+        .nat-item {
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -66,6 +69,10 @@
                 <span id="main4">加载中...</span>
                 <span id="main6">加载中...</span>
             </div>
+        </div>
+        <div class="item nat-item">
+            <label>NAT</label>
+            <span id="natType">检测中...</span>
         </div>
     </div>
     <div class="box" id="dentBox">
@@ -80,7 +87,7 @@
     <div class="qrcode-wrap" id="qrBox"></div>
 
     <script>
-        async function fetchIp(url, timeout = 2000) {
+        async function fetchIp(url, timeout = 1000) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), timeout);
             try {
@@ -98,13 +105,106 @@
             }
         }
 
+        // 单节点STUN探测，返回公网映射IP+端口
+        function stunSingleTest(stunUrl, timeoutMs = 2000) {
+            return new Promise(resolve => {
+                const pc = new RTCPeerConnection({ iceServers: [{ urls: stunUrl }] });
+                pc.createDataChannel('nat-test');
+                let result = null;
+                let done = false;
+                const timer = setTimeout(() => {
+                    pc.close();
+                    done = true;
+                    resolve(null);
+                }, timeoutMs);
+
+                pc.onicecandidate = evt => {
+                    if (!evt.candidate || done) return;
+                    const candStr = evt.candidate.candidate;
+                    if (!candStr) return;
+                    const arr = candStr.split(' ');
+                    const candType = arr[7];
+                    if (candType === 'srflx') {
+                        result = { ip: arr[4], port: Number(arr[5]) };
+                    }
+                };
+
+                pc.createOffer().then(sdp => pc.setLocalDescription(sdp));
+                pc.onicegatheringstatechange = () => {
+                    if (pc.iceGatheringState === 'complete' && !done) {
+                        clearTimeout(timer);
+                        pc.close();
+                        done = true;
+                        resolve(result);
+                    }
+                };
+            })
+        }
+
+        // 获取本机内网地址
+        function getLocalIp() {
+            return new Promise(resolve => {
+                const pc = new RTCPeerConnection();
+                pc.createDataChannel('local');
+                let localIp = '';
+                pc.onicecandidate = evt => {
+                    if (!evt.candidate) return;
+                    const arr = evt.candidate.candidate.split(' ');
+                    if (arr[7] === 'host') localIp = arr[4];
+                }
+                pc.createOffer().then(s => pc.setLocalDescription(s));
+                pc.onicegatheringstatechange = () => {
+                    pc.close();
+                    resolve(localIp);
+                }
+            })
+        }
+
+        // 多国内STUN集群，小米为主节点
+        const STUN_LIST = [
+            "stun:stun.miwifi.com:3478",
+            "stun:stun.bilibili.com:3478",
+            "stun:stun.douyu.com:3478",
+            "stun:stun.l.google.com:19302"
+        ];
+
+        // 完整6级NAT判定 0~5
+        async function checkNatTypeFull() {
+            const localIp = await getLocalIp();
+            const testResults = [];
+            // 遍历全部STUN节点采集映射端口
+            for (const stun of STUN_LIST) {
+                const res = await stunSingleTest(stun);
+                testResults.push(res);
+            }
+            const validResults = testResults.filter(item => item !== null);
+            // 等级0：所有节点均无法获取公网映射
+            if (validResults.length === 0) return "等级0 | UDP被防火墙拦截，无公网映射";
+            const first = validResults[0];
+            // 等级1 NAT1全锥：公网IP等于本机内网IP
+            if (localIp === first.ip) return "等级1 | NAT1 全锥型公网IP";
+            // 提取全部有效端口集合
+            const portSet = new Set(validResults.map(i => i.port));
+            // 等级2 NAT2受限锥：所有节点返回端口完全一致
+            if (portSet.size === 1) return "等级2 | NAT2 受限锥形NAT";
+            // 多端口不一致，二次区分3/4
+            const ipSet = new Set(validResults.map(i => i.ip));
+            if (ipSet.size === 1) {
+                // 出口IP固定、端口动态分配：NAT3端口受限锥
+                return "等级3 | NAT3 端口受限锥形CGNAT";
+            } else {
+                // 目标地址改变，IP+端口全部重新分配：NAT4对称NAT
+                return "等级4 | NAT4 对称NAT（严格CGN）";
+            }
+        }
+
         function renderIp(labelDom, dom4Id, dom6Id, ipData) {
             const dom4 = document.getElementById(dom4Id);
             const dom6 = document.getElementById(dom6Id);
             dom4.innerText = ipData.ipv4 ?? '无IPv4';
             dom6.innerText = ipData.ipv6 ?? '无IPv6';
             if (ipData.ipv6) {
-                generateQr(`http://[${ipData.ipv6}]:8088`);
+                generateQr(`http://[${ipData.ipv6}]:8089`);
             }
         }
 
@@ -117,20 +217,20 @@
         }
 
         (async () => {
-            // 优先请求ddnspod
             let pod4 = await fetchIp('https://ipv4.ddnspod.com');
             let pod6 = await fetchIp('https://ipv6.ddnspod.com');
             const mainLabel = document.getElementById('mainLabel');
             const dentBox = document.getElementById('dentBox');
+            const natDom = document.getElementById('natType');
+            const natResult = await checkNatTypeFull();
+            natDom.innerText = natResult;
 
-            // ddnspod v4+v6全部正常
             if (pod4 && pod6) {
                 dentBox.style.display = 'none';
                 renderIp(mainLabel, 'main4', 'main6', { ipv4: pod4, ipv6: pod6 });
                 return;
             }
 
-            // ddnspod故障，切换ident数据源，修改标签为dent
             mainLabel.innerText = 'dent';
             dentBox.style.display = 'none';
             let dent4 = await fetchIp('https://4.ident.me');
