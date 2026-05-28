@@ -2,46 +2,141 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>本机公网IP</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <style>
-        body {font-family: system-ui; padding: 30px; background:#f5f5f5}
-        .box{background:#fff;padding:20px;border-radius:8px;max-width:600px}
-        .item{margin:12px 0;font-size:16px}
-        label{display:inline-block;width:60px;font-weight:bold}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            overflow-x: hidden;
+        }
+        body {
+            font-family: system-ui, sans-serif;
+            padding: 10px;
+            background-color: #f5f5f5;
+        }
+        .box {
+            background-color: #ffffff;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 12px 10px;
+        }
+        .item {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 15px;/*标签v4间距*/
+            font-size: clamp(12px, calc((100% - 10px * 2) / 74), 18px);
+        }
+        label {
+            flex-shrink: 0;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+        .ip-group {
+            display: flex;
+            gap: 5px;
+            min-width: 0;
+        }
+        span {
+            white-space: nowrap;
+        }
+        .qrcode-wrap {
+            margin-top: 20px;
+            text-align: center;
+        }
+        canvas {
+            max-width: 80%;
+            border-radius: 6px;
+            background: #fff;
+            padding: 8px;
+        }
     </style>
 </head>
 <body>
-<div class="box">
-    <div class="item">
-        <label>pod：</label>
-        <span id="pod4" id=“pod6” </span>
+    <div class="box" id="mainBox">
+        <div class="item">
+            <label id="mainLabel">pod</label>
+            <div class="ip-group">
+                <span id="main4">加载中...</span>
+                <span id="main6">加载中...</span>
+            </div>
+        </div>
     </div>
-</div>
-<div class="box">
-    <div class="item">
-        <label>dent：</label>
-        <span id="dent4">加载中...</span>...<span id="dent6">加载中...</span>
+    <div class="box" id="dentBox">
+        <div class="item">
+            <label>dent</label>
+            <div class="ip-group">
+                <span id="dent4">加载中...</span>
+                <span id="dent6">加载中...</span>
+            </div>
+        </div>
     </div>
-</div>
+    <div class="qrcode-wrap" id="qrBox"></div>
 
-<script>
-// 封装获取IP函数
-async function getIp(url, domId) {
-    try {
-        const res = await fetch(url, {mode: 'cors'});
-        if (!res.ok) throw new Error('获取失败');
-        const ip = await res.text();
-        document.getElementById(domId).innerText = ip.trim() || '未获取到';
-    } catch (err) {
-        document.getElementById(domId).innerText = '当前网络无该地址';
-    }
-}
+    <script>
+        async function fetchIp(url, timeout = 2000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeout);
+            try {
+                const res = await fetch(url, {
+                    mode: 'cors',
+                    signal: controller.signal
+                });
+                clearTimeout(timer);
+                if (!res.ok) throw new Error('接口异常');
+                const ip = (await res.text()).trim();
+                return ip || null;
+            } catch (err) {
+                clearTimeout(timer);
+                return null;
+            }
+        }
 
-// 同时请求两个接口
-getIp('https://ipv4.ddnspod.com', 'pod4');
-getIp('https://ipv6.ddnspod.com', 'pod6');
-getIp('https://4.ident.me', 'dent4');
-getIp('https://6.ident.me', 'dent6');
-</script>
+        function renderIp(labelDom, dom4Id, dom6Id, ipData) {
+            const dom4 = document.getElementById(dom4Id);
+            const dom6 = document.getElementById(dom6Id);
+            dom4.innerText = ipData.ipv4 ?? '无IPv4';
+            dom6.innerText = ipData.ipv6 ?? '无IPv6';
+            if (ipData.ipv6) {
+                generateQr(`http://[${ipData.ipv6}]:8088`);
+            }
+        }
+
+        function generateQr(content) {
+            const qrBox = document.getElementById('qrBox');
+            qrBox.innerHTML = '';
+            const canvas = document.createElement('canvas');
+            qrBox.appendChild(canvas);
+            QRCode.toCanvas(canvas, content, { width: 300 });
+        }
+
+        (async () => {
+            // 优先请求ddnspod
+            let pod4 = await fetchIp('https://ipv4.ddnspod.com');
+            let pod6 = await fetchIp('https://ipv6.ddnspod.com');
+            const mainLabel = document.getElementById('mainLabel');
+            const dentBox = document.getElementById('dentBox');
+
+            // ddnspod v4+v6全部正常
+            if (pod4 && pod6) {
+                dentBox.style.display = 'none';
+                renderIp(mainLabel, 'main4', 'main6', { ipv4: pod4, ipv6: pod6 });
+                return;
+            }
+
+            // ddnspod故障，切换ident数据源，修改标签为dent
+            mainLabel.innerText = 'dent';
+            dentBox.style.display = 'none';
+            let dent4 = await fetchIp('https://4.ident.me');
+            let dent6 = await fetchIp('https://6.ident.me');
+            renderIp(mainLabel, 'main4', 'main6', { ipv4: dent4, ipv6: dent6 });
+        })()
+    </script>
 </body>
 </html>
