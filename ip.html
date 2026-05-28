@@ -30,8 +30,9 @@
             display: flex;
             align-items: center;
             flex-wrap: nowrap;
-            gap: 5px;
-            font-size: clamp(12px, calc((100% - 10px * 2) / 74), 18px);
+            gap: 15px;
+            /* 自适应字号，完整容纳文字，最小12px最大18px */
+            font-size: clamp(12px, calc((100% - 20px)/76), 18px);
         }
         label {
             flex-shrink: 0;
@@ -42,9 +43,13 @@
             display: flex;
             gap: 5px;
             min-width: 0;
+            flex: 1;
         }
         span {
             white-space: nowrap;
+            /* 关闭省略号，完整显示 */
+            text-overflow: unset;
+            overflow: visible;
         }
         .qrcode-wrap {
             margin-top: 20px;
@@ -87,7 +92,7 @@
     <div class="qrcode-wrap" id="qrBox"></div>
 
     <script>
-        async function fetchIp(url, timeout = 1000) {
+        async function fetchIp(url, timeout = 2000) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), timeout);
             try {
@@ -105,7 +110,6 @@
             }
         }
 
-        // 单节点STUN探测，返回公网映射IP+端口
         function stunSingleTest(stunUrl, timeoutMs = 2000) {
             return new Promise(resolve => {
                 const pc = new RTCPeerConnection({ iceServers: [{ urls: stunUrl }] });
@@ -141,7 +145,6 @@
             })
         }
 
-        // 获取本机内网地址
         function getLocalIp() {
             return new Promise(resolve => {
                 const pc = new RTCPeerConnection();
@@ -160,7 +163,6 @@
             })
         }
 
-        // 多国内STUN集群，小米为主节点
         const STUN_LIST = [
             "stun:stun.miwifi.com:3478",
             "stun:stun.bilibili.com:3478",
@@ -168,33 +170,24 @@
             "stun:stun.l.google.com:19302"
         ];
 
-        // 完整6级NAT判定 0~5
         async function checkNatTypeFull() {
             const localIp = await getLocalIp();
             const testResults = [];
-            // 遍历全部STUN节点采集映射端口
             for (const stun of STUN_LIST) {
                 const res = await stunSingleTest(stun);
                 testResults.push(res);
             }
             const validResults = testResults.filter(item => item !== null);
-            // 等级0：所有节点均无法获取公网映射
-            if (validResults.length === 0) return "等级0 | UDP被防火墙拦截，无公网映射";
+            if (validResults.length === 0) return "UDP被防火墙拦截，无公网映射";
             const first = validResults[0];
-            // 等级1 NAT1全锥：公网IP等于本机内网IP
-            if (localIp === first.ip) return "等级1 | NAT1 全锥型公网IP";
-            // 提取全部有效端口集合
+            if (localIp === first.ip) return "NAT1 全锥型公网IP";
             const portSet = new Set(validResults.map(i => i.port));
-            // 等级2 NAT2受限锥：所有节点返回端口完全一致
-            if (portSet.size === 1) return "等级2 | NAT2 受限锥形NAT";
-            // 多端口不一致，二次区分3/4
+            if (portSet.size === 1) return "NAT2 受限锥形NAT";
             const ipSet = new Set(validResults.map(i => i.ip));
             if (ipSet.size === 1) {
-                // 出口IP固定、端口动态分配：NAT3端口受限锥
-                return "等级3 | NAT3 端口受限锥形CGNAT";
+                return "NAT3 端口受限锥形CGNAT";
             } else {
-                // 目标地址改变，IP+端口全部重新分配：NAT4对称NAT
-                return "等级4 | NAT4 对称NAT（严格CGN）";
+                return "NAT4 对称NAT（严格CGN）";
             }
         }
 
