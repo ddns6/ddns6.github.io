@@ -110,7 +110,7 @@
             }
         }
 
-        function stunSingleTest(stunUrl, timeoutMs = 2000) {
+        function stunSingleTest(stunUrl, timeoutMs = 3000) {
             return new Promise(resolve => {
                 const pc = new RTCPeerConnection({ iceServers: [{ urls: stunUrl }] });
                 pc.createDataChannel('nat-test');
@@ -163,32 +163,63 @@
             })
         }
 
-        const STUN_LIST = [
+        // 原始全部STUN节点
+        const ALL_STUN = [
+            "stun:global.stun.twilio.com:3478",
+            "stun:stun.voipbuster.com:3478",
             "stun:stun.miwifi.com:3478",
-            "stun:stun.bilibili.com:3478",
-            "stun:stun.douyu.com:3478",
+            "stun:stun.cloudflare.com:3478",
             "stun:stun.l.google.com:19302"
         ];
+        // 节点别名映射
+        const STUN_ALIAS = {
+            "stun:global.stun.twilio.com:3478": "twilio",
+            "stun:stun.voipbuster.com:3478": "voipbuster",
+            "stun:stun.miwifi.com:3478": "miwifi",
+            "stun:stun.cloudflare.com:3478": "cloudflare",
+            "stun:stun.l.google.com:19302": "google"
+        };
+
+        // 洗牌函数：打乱数组顺序
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
 
         async function checkNatTypeFull() {
             const localIp = await getLocalIp();
+            // 随机洗牌，截取前2个节点参与检测
+            const randomStunList = shuffleArray(ALL_STUN).slice(0, 1);
             const testResults = [];
-            for (const stun of STUN_LIST) {
-                const res = await stunSingleTest(stun);
+            const successStunNames = [];
+
+            for (const stunUrl of randomStunList) {
+                const res = await stunSingleTest(stunUrl);
                 testResults.push(res);
+                if (res) {
+                    successStunNames.push(STUN_ALIAS[stunUrl] || stunUrl);
+                }
             }
+
             const validResults = testResults.filter(item => item !== null);
             if (validResults.length === 0) return "UDP被防火墙拦截，无公网映射";
+
             const first = validResults[0];
-            if (localIp === first.ip) return "NAT1 全锥型公网IP";
-            const portSet = new Set(validResults.map(i => i.port));
-            if (portSet.size === 1) return "NAT2 受限锥形NAT";
-            const ipSet = new Set(validResults.map(i => i.ip));
-            if (ipSet.size === 1) {
-                return "NAT3 端口受限锥形CGNAT";
-            } else {
-                return "NAT4 对称NAT（严格CGN）";
+            let natText = "";
+            if (localIp === first.ip) natText = "NAT1 全锥型公网IP";
+            else {
+                const portSet = new Set(validResults.map(i => i.port));
+                if (portSet.size === 1) natText = "NAT2 受限锥形NAT";
+                else {
+                    const ipSet = new Set(validResults.map(i => i.ip));
+                    natText = ipSet.size === 1 ? "NAT3 端口受限锥形CGNAT" : "NAT4 对称NAT（严格CGN）";
+                }
             }
+            return `${natText}  |  ${successStunNames.join(',')}`;
         }
 
         function renderIp(labelDom, dom4Id, dom6Id, ipData) {
