@@ -161,20 +161,12 @@
             })
         }
 
-        // 全部STUN节点
+        // 移除google节点
         const ALL_STUN = [
             "stun:global.stun.twilio.com:3478",
             "stun:stun.voipbuster.com:3478",
-            "stun:stun.miwifi.com:3478",
-            "stun:stun.l.google.com:19302"
+            "stun:stun.miwifi.com:3478"
         ];
-        // 节点别名映射
-        const STUN_ALIAS = {
-            "stun:global.stun.twilio.com:3478": "twilio",
-            "stun:stun.voipbuster.com:3478": "voipbuster",
-            "stun:stun.miwifi.com:3478": "miwifi",
-            "stun:stun.l.google.com:19302": "google"
-        };
 
         // 洗牌函数：打乱数组顺序
         function shuffleArray(arr) {
@@ -188,17 +180,13 @@
 
         async function checkNatTypeFull() {
             const localIp = await getLocalIp();
-            // 固定选取至少2个STUN节点，满足判断条件
-            const randomStunList = shuffleArray(ALL_STUN).slice(0, 2);
+            const randomStunList = shuffleArray(ALL_STUN);
             const testResults = [];
-            const successStunNames = [];
 
+            // 遍历全部STUN节点
             for (const stunUrl of randomStunList) {
                 const res = await stunSingleTest(stunUrl);
                 testResults.push(res);
-                if (res) {
-                    successStunNames.push(STUN_ALIAS[stunUrl] || stunUrl);
-                }
             }
 
             const validResults = testResults.filter(item => item !== null);
@@ -217,16 +205,17 @@
                 if (portSet.size === 1) {
                     natText = "NAT2 受限锥形NAT";
                 } else {
-                    // IP相同端口不同：NAT3端口受限锥形
+                    // IP相同端口不同：NAT3端口受限锥形CGNAT
                     if (ipSet.size === 1) {
                         natText = "NAT3 端口受限锥形CGNAT";
                     } else {
-                        // IP端口全部变化：NAT4对称NAT
+                        // IP端口全部变化：NAT4对称NAT（严格CGN）
                         natText = "NAT4 对称NAT（严格CGN）";
                     }
                 }
             }
-            return `${natText}   |   ${successStunNames.join(',')}`;
+            // 只返回NAT类型，不再拼接节点别名
+            return natText;
         }
 
         function renderIp(labelDom, dom4Id, dom6Id, ipData) {
