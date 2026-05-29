@@ -17,9 +17,36 @@ label{flex-shrink:0;min-width:45px;font-weight:bold;white-space:nowrap}
 .sep{color:#aaa;padding:0 2px}
 .jump-btn{padding:3px 8px;border:none;border-radius:4px;background:#409eff;color:#fff;flex-shrink:0}
 .jump-btn:active{background:#337ecc}
-.qrcode-wrap{margin-top:20px;text-align:center}
-canvas{max-width:80%;background:#fff;padding:8px;border-radius:6px}
 #dentBox{display:none;}
+
+/* 双栏二维码布局 */
+.qrcode-row{display:grid;grid-template-columns:1fr 1fr;gap:0px;margin-top:5px}
+.qrcode-card{background:#2d2d2d;border-radius:10px;padding:0px;display:flex;flex-direction:column;align-items:center;width:100%}
+.card-title{margin-bottom:5px;font-size:15px;color:#ccc;text-align:center}
+/* 正方形容器，预留内边距，防止内容裁切 */
+.qr-canvas-box{
+    width:100%;
+    aspect-ratio:1/1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0px;
+}
+/* canvas严格等比例完整容纳，不会溢出裁切 */
+.qr-canvas-box canvas{
+    width:100%;
+    height:100%;
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+    background:#fff;
+    padding:6px;
+    border-radius:6px;
+}
+
+.input-area{margin-top:15px;width:100%}
+#textInput{width:100%;padding:12px;background:#2d2d2d;border:1px solid #555;border-radius:8px;color:#fff;font-size:16px;min-height:100px}
+#textInput:focus{outline:none;border-color:#409eff}
 </style>
 </head>
 <body>
@@ -47,10 +74,25 @@ canvas{max-width:80%;background:#fff;padding:8px;border-radius:6px}
     </div>
   </div>
 </div>
-<div class="qrcode-wrap" id="qrWrap"></div>
+
+<!-- 双区域二维码 -->
+<div class="qrcode-row">
+  <div class="qrcode-card">
+    <div class="card-title">ip6</div>
+    <div class="qr-canvas-box" id="qrWrap"></div>
+  </div>
+  <div class="qrcode-card">
+    <div class="card-title">静态码实时</div>
+    <div class="qr-canvas-box" id="customQrWrap"></div>
+  </div>
+</div>
+
+<!-- 输入区域 -->
+<div class="input-area box">
+  <textarea id="textInput" placeholder="在此输入网址、文字，实时生成二维码"></textarea>
+</div>
 
 <script>
-// 跳转按钮绑定
 document.getElementById('btnIps').onclick = ()=>location.href="ips.html";
 
 async function getIP(url, t=1500){
@@ -66,7 +108,6 @@ async function getIP(url, t=1500){
   }
 }
 
-// 获取内网本机IP
 function getLocalPrivateIp(){
   return new Promise(resolve=>{
     const pc = new RTCPeerConnection();
@@ -85,7 +126,6 @@ function getLocalPrivateIp(){
   })
 }
 
-// 单个STUN探测，返回公网IP+端口
 function testStun(url, timeout=2000){
   return new Promise(resolve=>{
     const pc = new RTCPeerConnection({iceServers:[{urls:url}]});
@@ -110,14 +150,27 @@ function testStun(url, timeout=2000){
   })
 }
 
-// 多STUN节点列表
 const stunList = [
   "stun:stun.miwifi.com:3478",
   "stun:global.stun.twilio.com:3478",
   "stun:stun.voipbuster.com:3478"
 ];
 
-// 加载IP并渲染
+// 统一生成尺寸，适配容器大小
+function renderQR(containerId, content){
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
+  if(!content.trim()) return;
+  try{
+    const canvas = document.createElement("canvas");
+    // 画布尺寸适中，不会超出容器高度
+    QRCode.toCanvas(canvas, content, {width:220});
+    container.appendChild(canvas);
+  }catch(err){
+    container.innerHTML = "<p>生成失败</p>";
+  }
+}
+
 (async ()=>{
   let ip4 = await getIP("https://ipv4.ddnspod.com");
   let ip6 = await getIP("https://ipv6.ddnspod.com");
@@ -127,18 +180,11 @@ const stunList = [
   }
   document.getElementById("v4").innerText = ip4 || "获取失败";
   document.getElementById("v6").innerText = ip6 || "获取失败";
-
-  // IPv6二维码生成
   if(ip6){
-    try{
-      const canvas = document.createElement("canvas");
-      QRCode.toCanvas(canvas,`http://[${ip6}]:8088`,{width:300});
-      document.getElementById("qrWrap").append(canvas);
-    }catch{}
+    renderQR("qrWrap",`http://[${ip6}]:8088`);
   }
 })()
 
-// 后台精准NAT分类判断
 setTimeout(async()=>{
   const localIp = await getLocalPrivateIp();
   const resultArr = [];
@@ -151,25 +197,23 @@ setTimeout(async()=>{
     natDom.innerText = "STUN节点连通不足，无法判定";
     return;
   }
-
   const first = resultArr[0];
   const portSet = new Set(resultArr.map(item=>item.port));
   const ipSet = new Set(resultArr.map(item=>item.ip));
-
-  // NAT1：内网IP=公网IP + 所有节点端口完全一致 全锥型
   if(localIp === first.ip && portSet.size === 1){
     natDom.innerText = "NAT1 全锥型公网IP";
   }else if(portSet.size === 1){
-    // NAT2：公网IP固定，对外端口固定 受限锥形
     natDom.innerText = "NAT2 受限锥形NAT";
   }else if(ipSet.size === 1){
-    // NAT3：公网IP固定，每次请求端口随机 端口受限CGNAT（你的实际环境）
     natDom.innerText = "NAT3 端口受限锥形CGNAT";
   }else{
-    // NAT4：IP+端口全部随机 对称NAT
     natDom.innerText = "NAT4 对称NAT（严格CGN）";
   }
 },300)
+
+document.getElementById("textInput").addEventListener("input",(e)=>{
+  renderQR("customQrWrap", e.target.value);
+})
 </script>
 </body>
 </html>
