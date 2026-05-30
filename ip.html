@@ -65,6 +65,8 @@ label{flex-shrink:0;min-width:25px;font-weight:bold;white-space:nowrap}
     <button id="btnIps" class="jump-btn">ips</button>
     <span class="sep">|</span>
     <button id="btnIpd" class="jump-btn">ipd</button>
+    <span class="sep">|</span>
+    <button id="btnIpc" class="jump-btn">ipc</button>
   </div>
 </div>
 <div class="box" id="dentBox">
@@ -94,10 +96,10 @@ label{flex-shrink:0;min-width:25px;font-weight:bold;white-space:nowrap}
   <textarea id="textInput" placeholder="在此输入网址、文字，实时生成二维码"></textarea>
 </div>
 
-<script>
+<script>// 按钮跳转
 document.getElementById('btnIps').onclick = ()=>location.href="ips.html";
-// 新增ipd按钮跳转
 document.getElementById('btnIpd').onclick = ()=>location.href="ipd.html";
+document.getElementById('btnIpc').onclick = ()=>location.href="ipc.html";
 
 async function getIP(url, t=1500){
   const ctrl = new AbortController();
@@ -205,13 +207,13 @@ setTimeout(async()=>{
   const portSet = new Set(resultArr.map(item=>item.port));
   const ipSet = new Set(resultArr.map(item=>item.ip));
   if(localIp === first.ip && portSet.size === 1){
-    natDom.innerText = "NAT1 全锥型公网IP";
+    natDom.innerText = "1 全锥型公网IP";
   }else if(portSet.size === 1){
-    natDom.innerText = "NAT2 受限锥形NAT";
+    natDom.innerText = "2 受限锥形NAT";
   }else if(ipSet.size === 1){
-    natDom.innerText = "NAT3 端口受限锥形CGNAT";
+    natDom.innerText = "3 端口受限锥形CGNAT";
   }else{
-    natDom.innerText = "NAT4 对称NAT（严格CGN）";
+    natDom.innerText = "4 对称NAT(严格CGN)";
   }
 },300)
 
