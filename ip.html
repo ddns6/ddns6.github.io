@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ip.nat.barcode</title>
+<title>ip检测</title>
 <!-- 二维码库 -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <!-- 条形码库 -->
@@ -74,7 +74,7 @@ label{flex-shrink:0;min-width:25px;font-weight:bold;white-space:nowrap}
 #barcodeWrap.empty::before{
     content:"实时条码展示区";
     color:#666;
-    font-size:12px;
+    font-size:14px;
     display:block;
     padding:7px;
 }
@@ -276,9 +276,9 @@ setTimeout(async()=>{
   const portSet = new Set(resultArr.map(item=>item.port));
   const ipSet = new Set(resultArr.map(item=>item.ip));
   if(localIp === first.ip && portSet.size === 1){
-    natDom.innerText = "1 全锥型";
+    natDom.innerText = "1 全锥";
   }else if(portSet.size === 1){
-    natDom.innerText = "2 受限锥形";
+    natDom.innerText = "2 受限锥";
   }else if(ipSet.size === 1){
     natDom.innerText = "3 端口受限锥";
   }else{
