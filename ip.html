@@ -63,6 +63,8 @@ label{flex-shrink:0;min-width:25px;font-weight:bold;white-space:nowrap}
     <span id="nat">检测中</span>
     <span class="sep">|</span>
     <button id="btnIps" class="jump-btn">ips</button>
+    <span class="sep">|</span>
+    <button id="btnIpd" class="jump-btn">ipd</button>
   </div>
 </div>
 <div class="box" id="dentBox">
@@ -94,6 +96,8 @@ label{flex-shrink:0;min-width:25px;font-weight:bold;white-space:nowrap}
 
 <script>
 document.getElementById('btnIps').onclick = ()=>location.href="ips.html";
+// 新增ipd按钮跳转
+document.getElementById('btnIpd').onclick = ()=>location.href="ipd.html";
 
 async function getIP(url, t=1500){
   const ctrl = new AbortController();
