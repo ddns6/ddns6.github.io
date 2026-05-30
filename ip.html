@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>本机公网IP</title>
+<!-- 二维码库 -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+<!-- 条形码库 -->
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{overflow-x:hidden;background:#1a1a1a}
@@ -42,6 +45,38 @@ label{flex-shrink:0;min-width:25px;font-weight:bold;white-space:nowrap}
     background:#fff;
     padding:6px;
     border-radius:6px;
+}
+
+/* 条形码区域样式 - 去掉黑色边框，容器改为白色 */
+.barcode-box{
+    background:#2d2d2d;
+    border-radius:8px;
+    width:100%;
+    margin:10px 0;
+    padding:12px 10px;
+    text-align:center;
+}
+#barcodeWrap{
+    background:#fff;
+    padding:8px;
+    border-radius:6px;
+    display:inline-block;
+    max-width:100%;
+    overflow-x:auto;
+    border: none; /* 去掉边框 */
+}
+#barcodeWrap canvas{
+    max-width:100%;
+    height:auto;
+    background:#fff;
+}
+/* 空状态提示 */
+#barcodeWrap.empty::before{
+    content:"实时条码展示区";
+    color:#666;
+    font-size:14px;
+    display:block;
+    padding:0px;
 }
 
 .input-area{margin-top:5px;width:100%}
@@ -82,24 +117,29 @@ label{flex-shrink:0;min-width:25px;font-weight:bold;white-space:nowrap}
 <!-- 双区域二维码 -->
 <div class="qrcode-row">
   <div class="qrcode-card">
-    <div class="card-title">ip6</div>
+    <div class="card-title"></div>
     <div class="qr-canvas-box" id="qrWrap"></div>
   </div>
   <div class="qrcode-card">
-    <div class="card-title">静态码实时</div>
+    <div class="card-title"></div>
     <div class="qr-canvas-box" id="customQrWrap"></div>
   </div>
 </div>
 
+<!-- 条形码区域（输入框上方） -->
+<div class="barcode-box">
+  <div id="barcodeWrap" class="empty"></div>
+</div>
+
 <!-- 输入区域 -->
 <div class="input-area box">
-  <textarea id="textInput" placeholder="在此输入网址、文字，实时生成二维码"></textarea>
+  <textarea id="textInput" placeholder="网址、文字，实时生成二维码和条形码"></textarea>
 </div>
 
 <script>// 按钮跳转
-document.getElementById('btnIps').onclick = ()=>location.href="ips.html";
-document.getElementById('btnIpd').onclick = ()=>location.href="ipd.html";
-document.getElementById('btnIpc').onclick = ()=>location.href="ipc.html";
+document.getElementById('btnIps').onclick = ()=>location.href="ips";
+document.getElementById('btnIpd').onclick = ()=>location.href="ipd";
+document.getElementById('btnIpc').onclick = ()=>location.href="ipc";
 
 async function getIP(url, t=1500){
   const ctrl = new AbortController();
@@ -162,18 +202,48 @@ const stunList = [
   "stun:stun.voipbuster.com:3478"
 ];
 
-// 统一生成尺寸，适配容器大小
+// 二维码渲染
 function renderQR(containerId, content){
   const container = document.getElementById(containerId);
   container.innerHTML = "";
   if(!content.trim()) return;
   try{
     const canvas = document.createElement("canvas");
-    // 画布尺寸适中，不会超出容器高度
     QRCode.toCanvas(canvas, content, {width:180});
     container.appendChild(canvas);
   }catch(err){
-    container.innerHTML = "<p>生成失败</p>";
+    container.innerHTML = "<p style='color:#f00'>生成失败</p>";
+  }
+}
+
+// 改用 canvas 渲染条形码，去掉边框，背景纯白
+function renderBarcode(content){
+  const wrap = document.getElementById("barcodeWrap");
+  wrap.innerHTML = "";
+  wrap.classList.remove("empty");
+  
+  if(!content.trim()){
+    wrap.classList.add("empty");
+    return;
+  }
+  
+  try{
+    const canvas = document.createElement("canvas");
+    wrap.appendChild(canvas);
+    // 强制条码背景为白色，线条为黑色，去掉多余边距
+    JsBarcode(canvas, content, {
+      format: "CODE128",
+      displayValue: true,
+      fontSize: 0,
+      height: 30,
+      width: 2,
+      margin: 0,
+      background: "#ffffff",
+      lineColor: "#000000"
+    });
+  }catch(err){
+    console.error("条码生成错误:", err);
+    wrap.innerHTML = "<p style='color:#f00; margin:0; padding:0px 0;'>条码拒绝汉字</p>";
   }
 }
 
@@ -207,19 +277,28 @@ setTimeout(async()=>{
   const portSet = new Set(resultArr.map(item=>item.port));
   const ipSet = new Set(resultArr.map(item=>item.ip));
   if(localIp === first.ip && portSet.size === 1){
-    natDom.innerText = "1 全锥型公网IP";
+    natDom.innerText = "1 全锥型";
   }else if(portSet.size === 1){
-    natDom.innerText = "2 受限锥形NAT";
+    natDom.innerText = "2 受限锥形";
   }else if(ipSet.size === 1){
-    natDom.innerText = "3 端口受限锥形CGNAT";
+    natDom.innerText = "3 端口受限锥";
   }else{
-    natDom.innerText = "4 对称NAT(严格CGN)";
+    natDom.innerText = "4 对称";
   }
 },300)
 
+// 输入监听：同步生成二维码 + 条形码
 document.getElementById("textInput").addEventListener("input",(e)=>{
-  renderQR("customQrWrap", e.target.value);
+  const val = e.target.value;
+  renderQR("customQrWrap", val);
+  renderBarcode(val);
 })
+
+// 页面加载时，主动触发一次渲染
+window.addEventListener("load", ()=>{
+  const val = document.getElementById("textInput").value;
+  renderBarcode(val);
+});
 </script>
 </body>
 </html>
