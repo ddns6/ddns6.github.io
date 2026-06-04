@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Down压测工具</title>
-    <!-- 图标与图表CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <style>
         :root {
             --bg-color: #f7f8fa;
@@ -17,9 +15,9 @@
             --primary-blue: #2574f7;
             --success-green: #09b85c;
             --danger-red: #ff4542;
-            --status-stop-bg: #ffe9e9;
-            --status-stop-text: #e53935;
             --progress-bg: #eee;
+            --item-h: 46px;
+            --radius: 10px;
         }
         .dark-theme {
             --bg-color: #121217;
@@ -38,50 +36,28 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            padding: 6px;
+            padding: 8px;
             min-height: 100vh;
             transition: background 0.3s, color 0.3s;
         }
         .header-wrap {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-        }
-        #siteTitle {
-            font-size: 28px;
-            font-weight: 600;
-        }
-        .ip-display {
-            font-size: 14px;
-            line-height: 1.4;
-            color: var(--text-gray);
-        }
-        .ip-v4 {
-            color: var(--primary-blue);
-        }
-        .ip-v6 {
-            color: var(--success-green);
-            word-break: break-all;
+            justify-content: flex-end;
+            margin-bottom: 16px;
         }
         .header-buttons {
             display: flex;
-            /*flex-direction: column;纵向*/
-            gap: 5px;
+            gap: 8px;
         }
         .icon-btn {
-            width: 22px;
-            height: 22px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             border: 1px solid var(--border-color);
             background: var(--card-bg);
             color: var(--text-main);
-            font-size: 19px;
+            font-size: 18px;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -89,89 +65,62 @@
         }
         .card {
             background: var(--card-bg);
-            border-radius: 14px;
-            padding: 20px;
-            margin-bottom: 16px;
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 14px;
             border: 1px solid var(--border-color);
         }
-
-        /* 永久双栏，PC+手机都横向并排，永不换行 */
         .flex-row-fixed {
             display: flex;
             flex-direction: row !important;
-            gap: 16px;
+            gap: 8px;
             width: 100%;
+            align-items: center;
         }
-        .flex-col-item {
-            flex: 1;
-            min-width: 0; /* 小屏幕自动收缩宽度，防止溢出 */
+        .source-col {
+            flex: 0.7;
+            min-width: 70px;
+            position: relative;
         }
-
+        .thread-col {
+            flex: 0.7;
+            min-width: 80px;
+            position: relative;
+        }
+        .btn-wrap {
+            flex: 0 0 110px;
+        }
         .form-group {
-            margin-bottom: 16px;
-        }
-        .form-label {
-            display: block;
-            font-size: 16px;
-            color: var(--text-gray);
-            margin-bottom: 8px;
+            margin-bottom: 0;
         }
         .form-input, select {
             width: 100%;
-            height: 48px;
-            border-radius: 10px;
+            height: var(--item-h);
+            border-radius: var(--radius);
             border: 1px solid var(--border-color);
             background: var(--card-bg);
             color: var(--text-main);
-            padding: 0 14px;
-            font-size: 16px;
+            padding: 0 10px;
+            font-size: 15px;
         }
         optgroup {
-            font-size: 17px;
-            padding: 8px 4px;
+            font-size: 16px;
+            padding: 6px 4px;
         }
         option {
-            padding: 10px 6px;
+            padding: 8px 4px;
         }
         .hidden {
             display: none !important;
         }
-        .thread-row {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .thread-control {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        .thread-btn {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            color: var(--text-main);
-            font-size: 20px;
-            cursor: pointer;
-        }
-        .thread-input {
-            flex: 1;
-            text-align: center;
-        }
-        .status {
-            display: none;
-        }
         .btn {
             width: 100%;
-            height: 56px;
-            border-radius: 12px;
+            height: var(--item-h);
+            border-radius: var(--radius);
             border: none;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 500;
             cursor: pointer;
-            margin-top: 8px;
         }
         .btn-primary {
             background: var(--primary-blue);
@@ -179,110 +128,29 @@
         }
         .btn-running {
             background: var(--success-green);
-            color: var(--danger-red);
+            color: #fff;
         }
-       .stats-grid {
-            display: grid;
-            grid-template-rows: auto auto;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 4px;
-            margin-bottom: 4px;
+        /* 悬浮文字层，盖住下拉框 */
+        .overlay-txt{
+            position:absolute;
+            left:0;top:0;
+            width:100%;height:100%;
+            display:flex;
+            align-items:center;
+            padding:0 12px;
+            background:var(--card-bg);
+            border-radius:var(--radius);
+            font-size:15px;
+            z-index:2;
+            pointer-events:none;
         }
-        .stat-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding-bottom: 4px;
-        }
-        .stat-item:last-child {
-            border-bottom: none;
-        }
-        .stat-label {
-            font-size: 12px;
-            color: var(--text-gray);
-        }
-        .stat-value {
-            font-size: 15px;
-            font-weight: 500;
-        }
-        .stat-value.speed {
-            color: var(--primary-blue);
-        }
-        #totalData {
-            color: var(--danger-red);
-        }
-        .progress-bar {
-            width: 100%;
-            height: 1px;
-            background: var(--progress-bg);
-            border-radius: 99px;
-            overflow: hidden;
-            margin-bottom: 6px;
-        }
-        .progress-fill {
-            height: 100%;
-            background: var(--primary-blue);
-            width: 0%;
-            transition: width 0.2s;
-        }
-        .limit-setting {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .limit-main {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .limit-input-wrap {
-            display: flex;
-            gap: 6px;
-        }
-        .limit-input-wrap input {
-            width: 100px;
-        }
-        .limit-input-wrap select {
-            width: 80px;
-        }
-        .limit-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .watermark {
-            display: none;
-        }
-        .card-title {
-            font-size: 17px;
-            font-weight: 500;
-            border-left: 4px solid var(--primary-blue);
-            padding-left: 8px;
-            margin-bottom: 14px;
-        }
-        .chart-container {
-            width: 100%;
-            height: 200px;
-        }
-        .site-footer {
-            text-align: center;
-            margin-top: 10px;
-            color: var(--text-gray);
-            font-size: 14px;
-        }
-        .footer-dot {
-            margin: 0 8px;
+        .hide-overlay{
+            display:none;
         }
     </style>
 </head>
 <body>
     <div class="header-wrap">
-        <div class="header-left">
-            <h1 id="siteTitle">🌐</h1>
-            <div class="ip-display">
-                <div><span class="ip-v4" id="ipv4Text">获取中...</span></div>
-                <div><span class="ip-v6" id="ipv6Text">无/获取失败</span></div>
-            </div>
-        </div>
         <div class="header-buttons">
             <button class="icon-btn" onclick="toggleTheme()" title="切换主题">
                 <i class="fa fa-moon-o" id="themeIcon"></i>
@@ -295,12 +163,12 @@
 
     <div class="card">
         <div class="flex-row-fixed">
-            <!-- 左侧：测速源 -->
-            <div class="flex-col-item">
+            <div class="source-col">
                 <div class="form-group">
-                    <label class="form-label">选择测速源</label>
+                    <!--悬浮文字容器-->
+                    <div id="sourceOverlay" class="overlay-txt hide-overlay"></div>
                     <select id="sourceSelect">
-                        <option value="">-- 请选择测速源 --</option>
+                        <option value="">-源-</option>
                         <option value="https://lf5-j1gamecdn-cn.dailygn.com/obj/lf-game-lf/gdl_app_2682/1233880772355.mp4">朝夕光年游戏</option>
                         <option value="https://ossweb-img.qq.com/images/lol/web201310/skin/big10001.jpg">腾讯-英雄联盟-图片</option>
                         <option value="https://ossweb-img.qq.com/upload/webplat/info/cf/20230717/653421385804853.png">腾讯-穿越火线-图片</option>
@@ -331,7 +199,7 @@
                         <option value="https://img.aikan.miguvideo.com/publish/noms/2024/04/22/1O5MNLF3AN2JL.gif">咪咕爱看</option>
                         <option value="https://freeserver.migufun.com/resource/beta/picture/system/20200723/20200723104326220_sdpic.png">咪咕快游</option>
                         <option value="https://img.mcloud.139.com/material_prod/material_media/20241105/1730784603634.jpg">139邮箱</option>
-                        <option value="https://img1.shop.10086.cn/goods/tcqtjwurkdsfcxgr_940x7200">移动商城</option>
+                        <option value="https://img.m.shop.10086.cn/goods/tcqtjwurkdsfcxgr_940x7200">移动商城</option>
                         <option value="https://alimov2.a.kwimgs.com/upic/2024/11/18/17/BMjAyNDExMTgxNzM0NTFfMjQ2MzY1ODI4MV8xNDg5NTc1NTQwNDBfMl8z_b_Ba0e085802ad867415b13e560bab69dd2.mp4">快手视频</option>
                         <option value="https://img20.360buyimg.com/babel/jfs/t20271006/227634/23/27810/35856/67027beeF0cffb9fc/e68cd03835b91103.png">京东</option>
                         <option value="https://cdn.microsoftstore.com.cn/media/product_long_description/3781-00000/2_dupn50xr/4h0yzz2_360.jpg">微软</option>
@@ -356,221 +224,80 @@
                         <option value="https://speedtest.tokyo2.linode.com/100MB-tokyo2.bin">linode(日本东京市)</option>
                         <option value="https://emp.bbci.co.uk/emp/dashjs/3.2.0-8/dash.all.min.js">BBC中文网</option>
                         <option value="https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/download/v2.21.12/Waifu2x-Extension-GUI-v2.21.12-Portable.7z">Github</option>
-                        <optgroup label="自定义">
-                            <option value="custom">自定义链接...</option>
-                        </optgroup>
+                        <option value="custom">自定义链接</option>
                     </select>
                 </div>
-                <div id="customLinkGroup" class="form-group custom-link hidden">
-                    <label class="form-label">自定义链接</label>
-                    <input type="text" id="customLink" class="form-input" placeholder="输入下载链接 (http/https)">
+                <div id="customLinkGroup" class="form-group hidden" style="margin-top:12px;">
+                    <input type="text" id="customLink" class="form-input" placeholder="自定义链接">
                 </div>
             </div>
-
-            <!-- 右侧：线程设置 -->
-            <div class="flex-col-item">
+            <div class="thread-col">
                 <div class="form-group">
-                    <label class="form-label">运行线程 (1-<span id="maxThreadsLabel">16</span>)</label>
-                    <div class="thread-row">
-                        <div class="thread-control">
-                            <button class="thread-btn" onclick="changeThread(-1)">−</button>
-                            <input type="number" id="threadCount" class="form-input thread-input" value="1" min="1" max="16">
-                            <button class="thread-btn" onclick="changeThread(1)">+</button>
-                        </div>
-                        <div id="statusText" class="status stopped">已停止</div>
-                    </div>
+                    <div id="threadOverlay" class="overlay-txt hide-overlay"></div>
+                    <select id="threadCount">
+                        <option value="">-线程-</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
+                        <option value="11">11</option>
+                        <option value="12">12</option>
+                        <option value="13">13</option>
+                        <option value="14">14</option>
+                        <option value="15">15</option>
+                        <option value="16">16</option>
+                    </select>
                 </div>
             </div>
-        </div>
-
-        <button id="actionBtn" class="btn btn-primary" onclick="toggleAction()">开始运行</button>
-    </div>
-
-    <div id="captureArea">
-        <div class="card" id="statsCard">
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-label">已消耗流量</div>
-                    <div class="stat-value" id="totalData">0 B</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">实时速度</div>
-                    <div class="stat-value speed" id="currentSpeed">0 B/s</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">实时速率</div>
-                    <div class="stat-value speed" id="currentMbps">0 Mbps</div>
-                </div>
+            <div class="btn-wrap">
+                <button id="actionBtn" class="btn btn-primary" onclick="toggleAction()">开测</button>
             </div>
-
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
-            </div>
-
-            <div class="limit-setting">
-                <div class="limit-main">
-                    <span class="limit-label">限量:</span>
-                    <div class="limit-input-wrap">
-                        <input type="number" id="limitInput" placeholder="不限制" min="0" step="1">
-                        <select id="limitUnit" aria-label="流量单位">
-                            <option value="MB">MB</option>
-                            <option value="GB" selected="">GB</option>
-                            <option value="TB">TB</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="limit-actions">
-                    <button class="thread-btn" onclick="setLimit()" title="设置本次流量上限">
-                        <i class="fa fa-cog"></i>
-                    </button>
-                    <button class="thread-btn" onclick="restoreLastStats()" title="找回上次消耗的流量">
-                        <i class="fa fa-history"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-title">实时监控</div>
-            <div id="realtimeChart" class="chart-container"></div>
         </div>
     </div>
-
-    <footer class="site-footer">
-        <span>带宽压测</span>
-        <span class="footer-dot">•</span>
-        <span>999感冒灵</span>
-    </footer>
+    <div id="captureArea"></div>
 
     <script>
-        // 全局变量
         let isDark = false;
         let isRunning = false;
         let abortControllers = [];
         let totalBytes = 0;
         let lastBytes = 0;
         let startTime = Date.now();
-        let limitBytes = 0;
-        let lastSaveData = 0;
-        let chartInstance = null;
         const sourceSelect = document.getElementById('sourceSelect');
         const customLinkGroup = document.getElementById('customLinkGroup');
         const customLinkInput = document.getElementById('customLink');
         const threadCountInput = document.getElementById('threadCount');
-        const statusText = document.getElementById('statusText');
         const actionBtn = document.getElementById('actionBtn');
-        const totalDataDom = document.getElementById('totalData');
-        const currentSpeedDom = document.getElementById('currentSpeed');
-        const currentMbpsDom = document.getElementById('currentMbps');
-        const progressFill = document.getElementById('progressFill');
-        const ipv4Text = document.getElementById('ipv4Text');
-        const ipv6Text = document.getElementById('ipv6Text');
+        //悬浮文字元素
+        const sourceOverlay = document.getElementById('sourceOverlay');
+        const threadOverlay = document.getElementById('threadOverlay');
+        const btnDefaultTxt = "开测";
 
-        // 通过 ddnspod.com 获取公网IP，只执行一次
-        async function fetchPublicIP() {
-            // IPv4
-            try {
-                const v4Res = await fetch('https://ipv4.ddnspod.com/', {signal: AbortSignal.timeout(4000)});
-                const v4Ip = await v4Res.text();
-                ipv4Text.textContent = v4Ip.trim();
-            } catch (e) {
-                ipv4Text.textContent = '获取失败';
-            }
-
-            // IPv6
-            try {
-                const v6Res = await fetch('https://ipv6.ddnspod.com', {signal: AbortSignal.timeout(4000)});
-                const v6Ip = await v6Res.text();
-                ipv6Text.textContent = v6Ip.trim() || '无IPv6';
-            } catch (e) {
-                ipv6Text.textContent = '无/获取失败';
-            }
-        }
-
-        // 初始化ECharts图表
-        function initChart() {
-            chartInstance = echarts.init(document.getElementById('realtimeChart'));
-            const option = {
-                tooltip: { trigger: 'axis' },
-                legend: { data: ['速度', '延迟'], left: 'center' },
-                grid: { left: 30, right: 30, top: 30, bottom: 20 },
-                xAxis: { type: 'category', data: [], axisLine: { show: false } },
-                yAxis: [
-                    { name: 'Mbps', type: 'value', splitLine: { lineStyle: { color: 'rgba(128,128,128,0.1)' } } },
-                    { name: 'ms', type: 'value', splitLine: { show: false }, position: 'right' }
-                ],
-                series: [
-                    { name: '速度', type: 'line', yAxisIndex: 0, data: [], smooth: true, symbol: 'none', lineStyle: { color: '#4080ff' } },
-                    { name: '延迟', type: 'line', yAxisIndex: 1, data: [], smooth: true, symbol: 'none', lineStyle: { color: '#80d020' } }
-                ]
-            };
-            chartInstance.setOption(option);
-            window.addEventListener('resize', () => chartInstance.resize());
-        }
-
-        // 单位格式化
-        function formatByte(size) {
-            if (size < 1024) return `${size.toFixed(0)} B`;
-            if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
-            if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(2)} MB`;
-            return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`;
-        }
-
-        // 切换明暗主题
-        function toggleTheme() {
-            isDark = !isDark;
-            document.body.classList.toggle('dark-theme', isDark);
-            document.getElementById('themeIcon').className = isDark ? 'fa fa-sun-o' : 'fa fa-moon-o';
-            chartInstance && chartInstance.resize();
-        }
-
-        // 增减线程
-        function changeThread(num) {
-            let val = parseInt(threadCountInput.value);
-            val += num;
-            val = Math.max(1, Math.min(16, val));
-            threadCountInput.value = val;
-        }
-
-        // 下拉切换自定义输入框显示
         sourceSelect.addEventListener('change', () => {
             customLinkGroup.classList.toggle('hidden', sourceSelect.value !== 'custom');
         })
 
-        // 设置流量上限
-        function setLimit() {
-            const num = parseFloat(document.getElementById('limitInput').value) || 0;
-            const unit = document.getElementById('limitUnit').value;
-            if (unit === 'MB') limitBytes = num * 1024 * 1024;
-            else if (unit === 'GB') limitBytes = num * 1024 ** 3;
-            else if (unit === 'TB') limitBytes = num * 1024 ** 4;
-            alert(`已设置上限：${num} ${unit}`);
+        function formatByte(size) {
+            if (size < 1024) return `${size.toFixed(0)} B`;
+            if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
+            if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(2)}MB`;
+            return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`;
         }
-
-        // 重置统计数据
+        function toggleTheme() {
+            isDark = !isDark;
+            document.body.classList.toggle('dark-theme', isDark);
+            document.getElementById('themeIcon').className = isDark ? 'fa fa-sun-o' : 'fa fa-moon-o';
+        }
         function resetStats() {
             stopAllTask();
             totalBytes = lastBytes = 0;
-            lastSaveData = 0;
-            updateDisplay();
-            progressFill.style.width = '0%';
-            if (chartInstance) {
-                chartInstance.setOption({ xAxis: { data: [] }, series: [{ data: [] }, { data: [] }] });
-            }
         }
-
-        // 恢复上次统计
-        function restoreLastStats() {
-            totalBytes = lastSaveData;
-            updateDisplay();
-        }
-
-        // 更新页面数值展示
-        function updateDisplay() {
-            totalDataDom.textContent = formatByte(totalBytes);
-        }
-
-        // 循环下载请求
         async function fetchLoop(url) {
             const controller = new AbortController();
             abortControllers.push(controller);
@@ -586,80 +313,56 @@
                 } catch (err) { continue; }
             }
         }
-
-        // 启停任务
         function toggleAction() {
             if (isRunning) {
                 stopAllTask();
                 return;
             }
-            // 获取目标链接
             let targetUrl = sourceSelect.value;
-            if (!targetUrl) { alert('请选择测速源'); return; }
-            if (targetUrl === 'custom') {
+            if(targetUrl === 'custom'){
                 targetUrl = customLinkInput.value.trim();
-                if (!targetUrl) { alert('请填写自定义链接'); return; }
+                if(!targetUrl){
+                    alert('请填写自定义链接');
+                    return;
+                }
             }
-            // 初始化运行参数
+            if (!targetUrl) { alert('选择源'); return; }
+            let threadNum = Number(threadCountInput.value);
+            if(isNaN(threadNum) || threadNum <1){
+                alert("选择线程");
+                return;
+            }
             isRunning = true;
             totalBytes = lastBytes = 0;
             startTime = Date.now();
-            lastSaveData = totalBytes;
             actionBtn.className = 'btn btn-running';
-            actionBtn.textContent = '压测中.点击停止';
-            // 创建多线程
-            const threadNum = parseInt(threadCountInput.value);
-            for (let i = 0; i < threadNum; i++) {
-                fetchLoop(targetUrl);
-            }
-            // 定时刷新面板
+            //开启悬浮文字
+            sourceOverlay.classList.remove('hide-overlay');
+            threadOverlay.classList.remove('hide-overlay');
+            for (let i = 0; i < threadNum; i++) fetchLoop(targetUrl);
             const timer = setInterval(() => {
                 if (!isRunning) { clearInterval(timer); return; }
                 const now = Date.now();
-                const deltaTime = (now - startTime) / 1000 || 0.01;
-                const speedByte = (totalBytes - lastBytes) / deltaTime;
-                const mbps = (speedByte * 8 / 1000000).toFixed(2);
-                currentSpeedDom.textContent = formatByte(speedByte) + '/s';
-                currentMbpsDom.textContent = mbps + ' Mbps';
-                updateDisplay();
-                // 进度条
-                if (limitBytes > 0) {
-                    const percent = Math.min(100, totalBytes / limitBytes * 100);
-                    progressFill.style.width = percent + '%';
-                    if (totalBytes >= limitBytes) stopAllTask();
-                }
-                // 图表写入数据
-                const randomDelay = Math.floor(Math.random() * 80) + 20;
-                const xData = new Date().toLocaleTimeString();
-                const opt = chartInstance.getOption();
-                opt.xAxis[0].data.push(xData);
-                opt.series[0].data.push((speedByte * 8 / 1000000).toFixed(2));
-                opt.series[1].data.push(randomDelay);
-                if (opt.xAxis[0].data.length > 40) {
-                    opt.xAxis[0].data.shift();
-                    opt.series[0].data.shift();
-                    opt.series[1].data.shift();
-                }
-                chartInstance.setOption(opt);
+                const delta = (now - startTime)/1000 || 0.01;
+                const spdB = (totalBytes - lastBytes)/delta;
+                const mbps = (spdB *8 /1000000).toFixed(2);
+                //已耗.速度修改悬浮层文字，不碰select下拉
+                sourceOverlay.textContent = ""+formatByte(totalBytes);
+                threadOverlay.textContent = ""+formatByte(spdB)+"/s";
+                actionBtn.textContent = mbps + "Mbps";
                 lastBytes = totalBytes;
                 startTime = now;
-            }, 500);
+            },500);
         }
-
-        // 终止全部线程
         function stopAllTask() {
             isRunning = false;
-            abortControllers.forEach(item => item.abort());
+            abortControllers.forEach(c=>c.abort());
             abortControllers = [];
-            lastSaveData = totalBytes;
             actionBtn.className = 'btn btn-primary';
-            actionBtn.textContent = '开始运行';
-        }
-
-        // 页面加载初始化
-        window.onload = () => {
-            initChart();
-            fetchPublicIP();
+            actionBtn.textContent = btnDefaultTxt;
+            //隐藏悬浮文字，还原下拉原生显示
+            sourceOverlay.classList.add('hide-overlay');
+            threadOverlay.classList.add('hide-overlay');
         }
     </script>
 </body>
