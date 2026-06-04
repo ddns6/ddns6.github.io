@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ip检测+测速</title>
+<title>ip检测+测速+QPS压测</title>
 <!-- 二维码库 -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <!-- 条形码库 -->
@@ -73,23 +73,23 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     width: 100%;
     height: var(--item-h);
     border-radius: var(--radius);
-    border: 1px solid var(--border-color);
+    border:1px solid var(--border-color);
     background: var(--card-bg);
     color: var(--text-main);
-    padding: 0 8px;
+    padding:0 8px;
     font-size:13px;
 }
 .hidden {
     display: none !important;
 }
 .btn {
-    width: 100%;
-    height: var(--item-h);
-    border-radius: var(--radius);
-    border: none;
+    width:100%;
+    height:var(--item-h);
+    border-radius:var(--radius);
+    border:none;
     font-size:15px;
-    font-weight: 500;
-    cursor: pointer;
+    font-weight:500;
+    cursor:pointer;
 }
 .btn-primary {
     background: var(--primary-blue);
@@ -119,6 +119,72 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     color:#09b85c;
 }
 .hide-overlay{
+    display:none;
+}
+
+/* QPS压测新增样式，适配现有布局 */
+.qps-row{
+    display: grid;
+    grid-template-columns: 0.7fr 0.6fr 1fr 120px;
+    gap:6px;
+    margin-top:4px;
+}
+.qps-col{
+    display:flex;
+    flex-direction:column;
+    position:relative;
+}
+.qps-input{
+    width:100%;
+    height:var(--item-h);
+    border-radius:var(--radius);
+    border:1px solid var(--border-color);
+    background:var(--card-bg);
+    color:var(--text-main);
+    padding:0 8px;
+    font-size:13px;
+}
+.qps-input::placeholder{
+    color:#999;
+    font-size:9px;
+}
+.qps-stat{
+    width:100%;
+    height:var(--item-h);
+    background:var(--progress-bg);
+    border-radius:var(--radius);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    /* 默认隐藏 */
+    display:none;
+}
+.qps-num{
+    font-size:16px;
+    font-weight:bold;
+    color:#2574f7;
+}
+.qps-start{
+    height:var(--item-h);
+    width:100%;
+    border-radius:var(--radius);
+    border:none;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    background:var(--success-green);
+    color:#fff;
+}
+.qps-stop{
+    height:var(--item-h);
+    width:100%;
+    border-radius:var(--radius);
+    border:none;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    background:var(--danger-red);
+    color:#fff;
     display:none;
 }
 
@@ -210,13 +276,13 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     <button id="btnIpc" class="jump-btn">ipc</button>
   </div>
 
-  <!-- 【新增测速行：NAT下方同行容器内】 -->
+  <!-- 【测速行：NAT下方同行容器内】 -->
   <div class="flex-row-fixed">
     <div class="source-col">
         <div class="form-group">
             <div id="sourceOverlay" class="overlay-txt hide-overlay"></div>
             <select id="sourceSelect">
-                <option value="">-源-</option>
+                <option value="">----测速源----</option>
                 <option value="https://lf5-j1gamecdn-cn.dailygn.com/obj/lf-game-lf/gdl_app_2682/1233880772355.mp4">朝夕光年游戏</option>
                 <option value="https://ossweb-img.qq.com/images/lol/web201310/skin/big10001.jpg">腾讯-英雄联盟-图片</option>
                 <option value="https://ossweb-img.qq.com/upload/webplat/info/cf/20230717/653421385804853.png">腾讯-穿越火线-图片</option>
@@ -252,25 +318,25 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
                 <option value="https://img20.360buyimg.com/babel/jfs/t20271006/227634/23/27810/35856/67027beeF0cffb9fc/e68cd03835b91103.png">京东</option>
                 <option value="https://cdn.microsoftstore.com.cn/media/product_long_description/3781-00000/2_dupn50xr/4h0yzz2_360.jpg">微软</option>
                 <option value="httpswwwstatic.vivo.com.cn/vivoportal/files/resource/funtouch/1651200648928/images/os2-jude-video.mp4">vivo</option>
-                <option value="https://dsfs.oppo.com/oppo/shop-pc-v2/main/js/9fb472f.js">oppo</option>
-                <option value="https://s1.hdslb.com/bfs/game-static/web/caster/static/script/vue/da3f37d7fd8339357ed671a94941757e/st.zip">bilibili</option>
-                <option value="https://s1.xmcdn.com/yx/xmly-live-release/last/dist/Ximalaya-Live-Setup-4.18.550.exe">喜马拉雅</option>
+                <option value="httpsdsfs.oppo.com/oppo/shop-pc-v2/main/js/9fb472f.js">oppo</option>
+                <option value="httpss1.hdslb.com/bfs/game-static/web/caster/static/script/vue/da3f37d7fd8339357ed671a94941757e/st.zip">bilibili</option>
+                <option value="httpss1.xmcdn.com/yx/xmly-live-release/last/dist/Ximalaya-Live-Setup-4.18.550.exe">喜马拉雅</option>
                 <option value="http://i.apps.sina.cn/tqt/zip/com.sina.tianqitong_6.1892_2019.07.29.17.54.18.apk">新浪微博</option>
-                <option value="https://cd.pddpic.com/android_dev/2023-07-28/5c04772968aee57ca690fbe1e7f29467.apk">拼多多</option>
-                <option value="https://funimg.pddpic.com/c3affbeb-9b31-4546-b2df-95b62de81639.png.slim.png">拼多多-图片</option>
-                <option value="https://shark2.douyucdn.cn/front-publish/live-master/lib/vendor-room_4e3a873.js">斗鱼直播</option>
+                <option value="httpscd.pddpic.com/android_dev/2023-07-28/5c04772968aee57ca690fbe1e7f29467.apk">拼多多</option>
+                <option value="httpsfunimg.pddpic.com/c3affbeb-9b31-4546-b2df-95b62de81639.png.slim.png">拼多多-图片</option>
+                <option value="httpsshark2.douyucdn.cn/front-publish/live-master/lib/vendor-room_4e3a873.js">斗鱼直播</option>
                 <option value="httpswww-static.qbox.me/_next/static/media/image.064ce55ab11032d7c1fc0775c796db7b.png">七牛云</option>
-                <option value="https://activity.hdslb.com/blackboard/static/20210604/4d40bc4f98f94fbc71c235832ce3efd4/hJEhL6jGOY.zip">上海灵羊</option>
-                <option value="https://speed.cloudflare.com/__down?bytes=104857600">Cloudflare①</option>
-                <option value="https://speed.cloudflare.com/__down?bytes=524288000">Cloudflare②</option>
-                <option value="https://speed.cloudflare.com/__down?bytes=25000000">Cloudflare③</option>
-                <option value="https://speed.cloudflare.com/__down?bytes=1073741824">Cloudflare④</option>
-                <option value="https://cachefly.cachefly.net/100mb.test">Cachefly 100MB</option>
-                <option value="https://cachefly.cachefly.net/200mb.test">Cachefly 200MB</option>
-                <option value="https://sgp-ping.vultr.com/vultr.com.1000MB.bin">vultr(新加坡)</option>
-                <option value="https://nj-us-ping.vultr.com/vultr.com.1000MB.bin">vultr(纽约)</option>
-                <option value="https://speedtest.tokyo2.linode.com/100MB-tokyo2.bin">linode(日本东京市)</option>
-                <option value="https://emp.bbci.co.uk/emp/dashjs/3.2.0-8/dash.all.min.js">BBC中文网</option>
+                <option value="httpsactivity.hdslb.com/blackboard/static/20210604/4d40bc4f98f94fbc71c235832ce3efd4/hJEhL6jGOY.zip">上海灵羊</option>
+                <option value="httpsspeed.cloudflare.com/__down?bytes=104857600">Cloudflare①</option>
+                <option value="httpsspeed.cloudflare.com/__down?bytes=524288000">Cloudflare②</option>
+                <option value="httpsspeed.cloudflare.com/__down?bytes=25000000">Cloudflare③</option>
+                <option value="httpsspeed.cloudflare.com/__down?bytes=1073741824">Cloudflare④</option>
+                <option value="httpscachefly.cachefly.net/100mb.test">Cachefly 100MB</option>
+                <option value="httpscachefly.cachefly.net/200mb.test">Cachefly 200MB</option>
+                <option value="httpssgp-ping.vultr.com/vultr.com.1000MB.bin">vultr(新加坡)</option>
+                <option value="httpsnj-us-ping.vultr.com/vultr.com.1000MB.bin">vultr(纽约)</option>
+                <option value="httpsspeedtest.tokyo2.linode.com/100MB-tokyo2.bin">linode(日本东京市)</option>
+                <option value="httpsemp.bbci.co.uk/emp/dashjs/3.2.0-8/dash.all.min.js">BBC中文网</option>
                 <option value="httpsgithub.com/AaronFeng753/Waifu2x-Extension-GUI/releases/download/v2.21.12/Waifu2x-Extension-GUI-v2.21.12-Portable.7z">Github</option>
                 <option value="custom">自定义链接</option>
             </select>
@@ -283,7 +349,7 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
         <div class="form-group">
             <div id="threadOverlay" class="overlay-txt hide-overlay"></div>
             <select id="threadCount">
-                <option value="">-线程-</option>
+                <option value="">---线程---</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
@@ -305,6 +371,25 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     </div>
     <div class="btn-wrap">
         <button id="actionBtn" class="btn btn-primary" onclick="toggleAction()">开测</button>
+    </div>
+  </div>
+
+  <!-- QPS压测行，放在测速栏下一行 -->
+  <div class="qps-row">
+    <div class="qps-col">
+        <input class="qps-input" type="number" id="qps" value="250" min="1" max="250" placeholder="频率≤250">
+        <div class="qps-stat" id="qpsShow"><span class="qps-num" id="currentQps">0</span></div>
+    </div>
+    <div class="qps-col">
+        <input class="qps-input" type="number" id="total" value="100" min="1" placeholder="总请求(万次)">
+        <div class="qps-stat" id="countShow"><span class="qps-num" id="count">0</span></div>
+    </div>
+    <div class="qps-col">
+        <input class="qps-input" type="text" id="host" value=".360.cn" placeholder=".域名">
+    </div>
+    <div class="qps-col">
+        <button class="qps-start" id="startBtn" onclick="start()">QPS</button>
+        <button class="qps-stop" id="stopBtn" onclick="stop()">STOP</button>
     </div>
   </div>
 </div>
@@ -540,7 +625,7 @@ function formatByte(size) {
     if (size < 1024) return `${size.toFixed(0)}B`;
     if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)}KB`;
     if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(2)}MB`;
-    return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`;
+    return `${(size / 1024 / 1024 / 1024).toFixed(2)}GB`;
 }
 
 async function fetchLoop(url) {
@@ -614,6 +699,73 @@ function stopAllTask() {
     document.body.classList.remove('dark-theme');
 }
 // ==========页面2测速JS结束==========
+
+// ==========QPS压测JS新增代码==========
+let qpsTimer = null;
+let reqCount = 0;
+let qpsNum = 250;
+let maxReqCount = 100 * 10000;
+let domainHost = ".360.cn";
+let lastSecond = 0;
+let secondReqCnt = 0;
+
+function $(id){return document.getElementById(id)}
+
+function start(){
+    if(qpsTimer) return;
+    qpsNum = parseInt($("qps").value) || 250;
+    maxReqCount = parseInt($("total").value || 1) * 10000;
+    domainHost = $("host").value.trim() || ".360.cn";
+
+    //隐藏输入框，显示统计框
+    $("qps").style.display = "none";
+    $("total").style.display = "none";
+    $("qpsShow").style.display = "flex";
+    $("countShow").style.display = "flex";
+    $("startBtn").style.display = "none";
+    $("stopBtn").style.display = "block";
+
+    let perMs = 1000 / qpsNum;
+    qpsTimer = setInterval(()=>{
+        if(reqCount >= maxReqCount){stop();return;}
+        sendReq();
+    }, perMs);
+}
+
+function stop(){
+    clearInterval(qpsTimer);
+    qpsTimer = null;
+    reqCount = 0;
+    secondReqCnt = 0;
+    $("count").innerText = 0;
+    $("currentQps").innerText = 0;
+
+    //恢复输入框，隐藏统计框
+    $("qps").style.display = "";
+    $("total").style.display = "";
+    $("qpsShow").style.display = "none";
+    $("countShow").style.display = "none";
+    $("startBtn").style.display = "block";
+    $("stopBtn").style.display = "none";
+}
+
+function sendReq(){
+    reqCount++;
+    secondReqCnt++;
+    let now = Math.floor(Date.now()/1000);
+    if(now !== lastSecond){
+        lastSecond = now;
+        $("currentQps").innerText = secondReqCnt;
+        secondReqCnt = 0;
+    }
+    $("count").innerText = reqCount;
+
+    let rand = Math.random().toString(36).substr(2,10);
+    let url = `https://${rand}${domainHost}/favicon.ico?${Math.random()}`;
+    let img = new Image();
+    img.src = url;
+    img.onload = img.onerror = ()=>{};
+}
 </script>
 </body>
 </html>
