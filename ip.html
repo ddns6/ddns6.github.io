@@ -54,7 +54,7 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     margin-top:4px;
 }
 .source-col {
-    flex: 1;
+    flex: 0.7;
     min-width: 70px;
     position: relative;
 }
@@ -64,7 +64,7 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     position: relative;
 }
 .btn-wrap {
-    flex: 0 0 80px;
+    flex: 0 0 120px;
 }
 .form-group {
     margin-bottom: 0;
@@ -87,7 +87,7 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     height: var(--item-h);
     border-radius: var(--radius);
     border: none;
-    font-size:13px;
+    font-size:15px;
     font-weight: 500;
     cursor: pointer;
 }
@@ -108,7 +108,7 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     padding:0 8px;
     background:var(--card-bg);
     border-radius:var(--radius);
-    font-size:12px;
+    font-size:15px;
     z-index:2;
     pointer-events:none;
 }
@@ -537,8 +537,8 @@ sourceSelect.addEventListener('change', () => {
 })
 
 function formatByte(size) {
-    if (size < 1024) return `${size.toFixed(0)} B`;
-    if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
+    if (size < 1024) return `${size.toFixed(0)}B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)}KB`;
     if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(2)}MB`;
     return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`;
 }
