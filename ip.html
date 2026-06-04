@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ip检测</title>
+<title>ip检测+测速</title>
 <!-- 二维码库 -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
 <!-- 条形码库 -->
@@ -20,9 +20,107 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
 /* NAT文字和IP字号统一，不再放大 */
 .nat-item label{font-size:12px;font-weight:bold;min-width:auto;}
 .sep{color:#aaa;padding:0 1px}
-.jump-btn{padding:2px 5px;border:none;border-radius:3px;background:#409eff;color:#fff;flex-shrink:0}
+.jump-btn{padding:0px 3px;border:none;border-radius:3px;background:#409eff;color:#fff;flex-shrink:0}
 .jump-btn:active{background:#337ecc}
 #dentBox{display:none;}
+
+/* 测速样式适配深色页面 */
+:root {
+    --bg-color: #1a1a1a;
+    --card-bg: #2d2d2d;
+    --text-main: #fff;
+    --text-gray: #a0a0a8;
+    --border-color: #444;
+    --primary-blue: #409eff;
+    --success-green: #09b85c;
+    --danger-red: #ff4542;
+    --progress-bg: #2c2c38;
+    --item-h: 36px;
+    --radius: 6px;
+}
+.dark-theme {
+    --bg-color: #121217;
+    --card-bg: #222730;
+    --text-main: #f0f0f0;
+    --text-gray: #a0a0a8;
+    --border-color: #555;
+}
+.flex-row-fixed {
+    display: flex;
+    flex-direction: row !important;
+    gap: 6px;
+    width: 100%;
+    align-items: center;
+    margin-top:4px;
+}
+.source-col {
+    flex: 1;
+    min-width: 70px;
+    position: relative;
+}
+.thread-col {
+    flex: 0.6;
+    min-width: 60px;
+    position: relative;
+}
+.btn-wrap {
+    flex: 0 0 80px;
+}
+.form-group {
+    margin-bottom: 0;
+}
+.form-input, select {
+    width: 100%;
+    height: var(--item-h);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-main);
+    padding: 0 8px;
+    font-size:13px;
+}
+.hidden {
+    display: none !important;
+}
+.btn {
+    width: 100%;
+    height: var(--item-h);
+    border-radius: var(--radius);
+    border: none;
+    font-size:13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+.btn-primary {
+    background: var(--primary-blue);
+    color: #fff;
+}
+.btn-running {
+    background: var(--success-green);
+    color: #000;
+}
+.overlay-txt{
+    position:absolute;
+    left:0;top:0;
+    width:100%;height:100%;
+    display:flex;
+    align-items:center;
+    padding:0 8px;
+    background:var(--card-bg);
+    border-radius:var(--radius);
+    font-size:12px;
+    z-index:2;
+    pointer-events:none;
+}
+#sourceOverlay{
+    color:#f53f3f;
+}
+#threadOverlay{
+    color:#09b85c;
+}
+.hide-overlay{
+    display:none;
+}
 
 /* 双栏二维码布局 */
 .qrcode-row{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:1px}
@@ -111,6 +209,104 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     <span class="sep">|</span>
     <button id="btnIpc" class="jump-btn">ipc</button>
   </div>
+
+  <!-- 【新增测速行：NAT下方同行容器内】 -->
+  <div class="flex-row-fixed">
+    <div class="source-col">
+        <div class="form-group">
+            <div id="sourceOverlay" class="overlay-txt hide-overlay"></div>
+            <select id="sourceSelect">
+                <option value="">-源-</option>
+                <option value="https://lf5-j1gamecdn-cn.dailygn.com/obj/lf-game-lf/gdl_app_2682/1233880772355.mp4">朝夕光年游戏</option>
+                <option value="https://ossweb-img.qq.com/images/lol/web201310/skin/big10001.jpg">腾讯-英雄联盟-图片</option>
+                <option value="https://ossweb-img.qq.com/upload/webplat/info/cf/20230717/653421385804853.png">腾讯-穿越火线-图片</option>
+                <option value="https://puui.qpic.cn/vpic_cover/g3346tki83w/g3346tki83w_hz.jpg">腾讯视频</option>
+                <option value="https://wegame.gtimg.com/g.55555-r.c4663/wegame-home/sc02-03.514d7db8.png">Wegame</option>
+                <option value="https://wppkg.baidupcs.com/issue/netdisk/apk/BaiduNetdisk_10.1.02.apk">百度网盘-安卓</option>
+                <option value="https://issuepcdn.baidupcs.com/issue/netdisk/yunguanjia/BaiduNetdisk_7.54.0.103.exe">百度网盘-电脑</option>
+                <option value="https://staticsns.cdn.bcebos.com/amis/2024-12/1733110167508/ec2943f8f5e27bd38f00c6e02.png">百度网盘官网-图片</option>
+                <option value="https://static-d.iqiyi.com/ext/common/iQIYIMedia_000.dmg">爱奇艺官网</option>
+                <option value="https://vd3.bdstatic.com/mda-pm9zn07ydwzhfw85/1080p/cae_h264/1702252000350219836/mda-pm9zn07ydwzhfw85.mp4">百度好看视频</option>
+                <option value="https://m1.ad.10010.com/small_video/uploadImg/1598021193891.jpg">联通公免</option>
+                <option value="https://listen.10155.com/listener/womusic-bucket/90115000/mv_vod/volteposter/screenshot/20220129/1487368366712385537.jpeg">沃音乐-联通公免</option>
+                <option value="https://gw.alicdn.com/tfscom/TB1fASCxhjaK1RjSZKzXXXVwXXa.jpg">阿里云①</option>
+                <option value="https://img.alicdn.com/imgextra/i1/O1CN01xA4P9S1JsW2WEg0e1_!!6000000001084-2-tps-2880-560.png">阿里云②</option>
+                <option value="https://cloud.video.taobao.com/play/u/null/p/1/e/6/t/1/442087612070.mp4">夸克网盘</option>
+                <option value="https://image.uc.cn/s/uae/g/3o/broccoli/resource/202401/zry_video.mp4">UC浏览器</option>
+                <option value="https://jmy-pic.baidu.com/0/pic/1203225490_216151106_2084668354.jpg">优酷视频</option>
+                <option value="https://lf9-static.bytednsdoc.com/obj/eden-cn/uhbfnupkbps/video/earth_v6.mp4">今日头条</option>
+                <option value="https://lf3-cdn-tos.bytescm.com/obj/ttfe/ATSX/mainland/video-poster_1576231362701.png">字节跳动</option>
+                <option value="https://static.e.189.cn/open/login/page/web/v5.0/static/js/captch.min.js?v1.1">天翼云盘</option>
+                <option value="https://desk.ctyun.cn:8999/desktop-prod/software/windows_tob_client/15/64/202030001/CtyunClouddeskUniversal_2.3.0_202030001_x86_20240327104015_Setup.exe">天翼云桌面①</option>
+                <option value="https://desk.ctyun.cn:8999/desktop-prod/software/windows_tob_client/15/64/202010003/CtyunClouddeskUniversal_2.1.0_202010003_x86_20230905151733_Setup_signed.exe">天翼云桌面②</option>
+                <option value="https://review.21cn.com/img/20220610/1/1654859008246.mp4">21CN</option>
+                <option value="https://img.mcloud.139.com/material_prod/material_media/20221128/1669626861087.png">移动云盘①</option>
+                <option value="https://yun.mcloud.139.com/hongseyunpan/2.43G.zip">移动云盘②</option>
+                <option value="https://img.cmvideo.cn/publish/noms/2023/12/06/1O4SHFIFR36BD.gif">咪咕视频①</option>
+                <option value="https://img.cmvideo.cn/publish/noms/2022/10/14/1O3VIGPVP6HTS.jpg">咪咕视频②</option>
+                <option value="https://img.aikan.miguvideo.com/publish/noms/2024/04/22/1O5MNLF3AN2JL.gif">咪咕爱看</option>
+                <option value="https://freeserver.migufun.com/resource/beta/picture/system/20200723/20200723104326220_sdpic.png">咪咕快游</option>
+                <option value="https://img.mcloud.139.com/material_prod/material_media/20241105/1730784603634.jpg">139邮箱</option>
+                <option value="https://img.m.shop.10086.cn/goods/tcqtjwurkdsfcxgr_940x7200">移动商城</option>
+                <option value="https://alimov2.a.kwimgs.com/upic/2024/11/18/17/BMjAyNDExMTgxNzM0NTFfMjQ2MzY1ODI4MV8xNDg5NTc1NTQwNDBfMl8z_b_Ba0e085802ad867415b13e560bab69dd2.mp4">快手视频</option>
+                <option value="https://img20.360buyimg.com/babel/jfs/t20271006/227634/23/27810/35856/67027beeF0cffb9fc/e68cd03835b91103.png">京东</option>
+                <option value="https://cdn.microsoftstore.com.cn/media/product_long_description/3781-00000/2_dupn50xr/4h0yzz2_360.jpg">微软</option>
+                <option value="httpswwwstatic.vivo.com.cn/vivoportal/files/resource/funtouch/1651200648928/images/os2-jude-video.mp4">vivo</option>
+                <option value="https://dsfs.oppo.com/oppo/shop-pc-v2/main/js/9fb472f.js">oppo</option>
+                <option value="https://s1.hdslb.com/bfs/game-static/web/caster/static/script/vue/da3f37d7fd8339357ed671a94941757e/st.zip">bilibili</option>
+                <option value="https://s1.xmcdn.com/yx/xmly-live-release/last/dist/Ximalaya-Live-Setup-4.18.550.exe">喜马拉雅</option>
+                <option value="http://i.apps.sina.cn/tqt/zip/com.sina.tianqitong_6.1892_2019.07.29.17.54.18.apk">新浪微博</option>
+                <option value="https://cd.pddpic.com/android_dev/2023-07-28/5c04772968aee57ca690fbe1e7f29467.apk">拼多多</option>
+                <option value="https://funimg.pddpic.com/c3affbeb-9b31-4546-b2df-95b62de81639.png.slim.png">拼多多-图片</option>
+                <option value="https://shark2.douyucdn.cn/front-publish/live-master/lib/vendor-room_4e3a873.js">斗鱼直播</option>
+                <option value="httpswww-static.qbox.me/_next/static/media/image.064ce55ab11032d7c1fc0775c796db7b.png">七牛云</option>
+                <option value="https://activity.hdslb.com/blackboard/static/20210604/4d40bc4f98f94fbc71c235832ce3efd4/hJEhL6jGOY.zip">上海灵羊</option>
+                <option value="https://speed.cloudflare.com/__down?bytes=104857600">Cloudflare①</option>
+                <option value="https://speed.cloudflare.com/__down?bytes=524288000">Cloudflare②</option>
+                <option value="https://speed.cloudflare.com/__down?bytes=25000000">Cloudflare③</option>
+                <option value="https://speed.cloudflare.com/__down?bytes=1073741824">Cloudflare④</option>
+                <option value="https://cachefly.cachefly.net/100mb.test">Cachefly 100MB</option>
+                <option value="https://cachefly.cachefly.net/200mb.test">Cachefly 200MB</option>
+                <option value="https://sgp-ping.vultr.com/vultr.com.1000MB.bin">vultr(新加坡)</option>
+                <option value="https://nj-us-ping.vultr.com/vultr.com.1000MB.bin">vultr(纽约)</option>
+                <option value="https://speedtest.tokyo2.linode.com/100MB-tokyo2.bin">linode(日本东京市)</option>
+                <option value="https://emp.bbci.co.uk/emp/dashjs/3.2.0-8/dash.all.min.js">BBC中文网</option>
+                <option value="httpsgithub.com/AaronFeng753/Waifu2x-Extension-GUI/releases/download/v2.21.12/Waifu2x-Extension-GUI-v2.21.12-Portable.7z">Github</option>
+                <option value="custom">自定义链接</option>
+            </select>
+        </div>
+        <div id="customLinkGroup" class="form-group hidden" style="margin-top:6px;">
+            <input type="text" id="customLink" class="form-input" placeholder="自定义链接">
+        </div>
+    </div>
+    <div class="thread-col">
+        <div class="form-group">
+            <div id="threadOverlay" class="overlay-txt hide-overlay"></div>
+            <select id="threadCount">
+                <option value="">-线程-</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+                <option value="7">7</option>
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16">16</option>
+            </select>
+        </div>
+    </div>
+    <div class="btn-wrap">
+        <button id="actionBtn" class="btn btn-primary" onclick="toggleAction()">开测</button>
+    </div>
+  </div>
 </div>
 <div class="box" id="dentBox">
   <div class="item">
@@ -141,7 +337,9 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
   <textarea id="textInput" placeholder="网址、文字，实时生成二维码和条形码"></textarea>
 </div>
 
-<script>// 按钮跳转
+<script>
+// ==========页面1原有JS开始==========
+// 按钮跳转
 document.getElementById('btnIps').onclick = ()=>location.href="ips";
 document.getElementById('btnIpd').onclick = ()=>location.href="ipd";
 document.getElementById('btnIpc').onclick = ()=>location.href="ipc";
@@ -316,6 +514,106 @@ document.getElementById("textInput").addEventListener("input",e=>{
   renderBarcode(val);
 })
 window.addEventListener("load", ()=>renderBarcode(document.getElementById("textInput").value));
+// ==========页面1原有JS结束==========
+
+// ==========页面2测速JS开始==========
+let isDark = false;
+let isRunning = false;
+let abortControllers = [];
+let totalBytes = 0;
+let lastBytes = 0;
+let startTime = Date.now();
+const sourceSelect = document.getElementById('sourceSelect');
+const customLinkGroup = document.getElementById('customLinkGroup');
+const customLinkInput = document.getElementById('customLink');
+const threadCountInput = document.getElementById('threadCount');
+const actionBtn = document.getElementById('actionBtn');
+const sourceOverlay = document.getElementById('sourceOverlay');
+const threadOverlay = document.getElementById('threadOverlay');
+const btnDefaultTxt = "开测";
+
+sourceSelect.addEventListener('change', () => {
+    customLinkGroup.classList.toggle('hidden', sourceSelect.value !== 'custom');
+})
+
+function formatByte(size) {
+    if (size < 1024) return `${size.toFixed(0)} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`;
+    if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(2)}MB`;
+    return `${(size / 1024 / 1024 / 1024).toFixed(2)} GB`;
+}
+
+async function fetchLoop(url) {
+    const controller = new AbortController();
+    abortControllers.push(controller);
+    while (isRunning) {
+        try {
+            const res = await fetch(url, { signal: controller.signal, cache: 'no-cache' });
+            const reader = res.body.getReader();
+            while (isRunning) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                totalBytes += value.length;
+            }
+        } catch (err) { continue; }
+    }
+}
+function toggleAction() {
+    if (isRunning) {
+        stopAllTask();
+        return;
+    }
+    // 开始测速切深色加深主题
+    isDark = true;
+    document.body.classList.add('dark-theme');
+
+    let targetUrl = sourceSelect.value;
+    if(targetUrl === 'custom'){
+        targetUrl = customLinkInput.value.trim();
+        if(!targetUrl){
+            alert('请填写自定义链接');
+            return;
+        }
+    }
+    if (!targetUrl) { alert('选择源'); return; }
+    let threadNum = Number(threadCountInput.value);
+    if(isNaN(threadNum) || threadNum <1){
+        alert("选择线程");
+        return;
+    }
+    isRunning = true;
+    totalBytes = lastBytes = 0;
+    startTime = Date.now();
+    actionBtn.className = 'btn btn-running';
+    sourceOverlay.classList.remove('hide-overlay');
+    threadOverlay.classList.remove('hide-overlay');
+    for (let i = 0; i < threadNum; i++) fetchLoop(targetUrl);
+    const timer = setInterval(() => {
+        if (!isRunning) { clearInterval(timer); return; }
+        const now = Date.now();
+        const delta = (now - startTime)/1000 || 0.01;
+        const spdB = (totalBytes - lastBytes)/delta;
+        const mbps = (spdB *8 /1000000).toFixed(2);
+        sourceOverlay.textContent = ""+formatByte(totalBytes);
+        threadOverlay.textContent = ""+formatByte(spdB)+"/s";
+        actionBtn.textContent = mbps + "Mbps";
+        lastBytes = totalBytes;
+        startTime = now;
+    },500);
+}
+function stopAllTask() {
+    isRunning = false;
+    abortControllers.forEach(c=>c.abort());
+    abortControllers = [];
+    actionBtn.className = 'btn btn-primary';
+    actionBtn.textContent = btnDefaultTxt;
+    sourceOverlay.classList.add('hide-overlay');
+    threadOverlay.classList.add('hide-overlay');
+    //停止测速恢复页面默认深色（移除dark-theme）
+    isDark = false;
+    document.body.classList.remove('dark-theme');
+}
+// ==========页面2测速JS结束==========
 </script>
 </body>
 </html>
