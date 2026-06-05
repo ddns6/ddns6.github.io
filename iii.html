@@ -144,13 +144,14 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
 }
 .select-drop{
     position:absolute;
-    left:0;top:calc(100% + 3px);
+    left:0;
+    top:calc(100% + 3px);
     width:100%;
     background:#2d2d2d;
     border:1px solid #444;
     border-radius:6px;
     z-index:999;
-    max-height:45vh;
+    max-height:calc(100vh - var(--item-h) - 120px);
     overflow-y:auto;
     display:none;
 }
@@ -160,7 +161,7 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     list-style:none;
     line-height:20px;
     padding:2 2px;
-    font-size:12px;
+    font-size:14px;
     cursor:pointer;
 }
 .select-drop li:active{background:#409eff60;}
@@ -329,8 +330,8 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
                 <div class="select-head" id="sourceHead">默认源-朝夕光年</div>
                 <ul class="select-drop" id="sourceDrop">
                     <li data-val="https://lf5-j1gamecdn-cn.dailygn.com/obj/lf-game-lf/gdl_app_2682/1233880772355.mp4">默认源-朝夕光年</li>
-                    <li data-val="https://ossweb-img.qq.com/images/lol/web201310/skin/big10001.jpg">腾讯.英雄联盟.jpg</li>
-                    <li data-val="https://ossweb-img.qq.com/upload/webplat/info/cf/20230717/653421385804853.png">腾讯.穿越火线.png</li>
+                    <li data-val="https://ossweb-img.qq.com/images/lol/web201310/skin/big10001.jpg">腾讯英雄联盟.jpg</li>
+                    <li data-val="https://ossweb-img.qq.com/upload/webplat/info/cf/20230717/653421385804853.png">腾讯穿越火线.png</li>
                     <li data-val="https://puui.qpic.cn/vpic_cover/g3346tki83w/g3346tki83w_hz.jpg">腾讯视频.jpg</li>
                     <li data-val="https://wegame.gtimg.com/g.55555-r.c4663/wegame-home/sc02-03.514d7db8.png">Wegame.png</li>
                     <li data-val="https://wppkg.baidupcs.com/issue/netdisk/apk/BaiduNetdisk_10.1.02.apk">百度网盘.apk</li>
