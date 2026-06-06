@@ -3,28 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="referrer" content="no-referrer">
 <title>ip压测</title>
-<!-- 二维码库 -->
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-<!-- 条形码库 -->
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{overflow-x:hidden;background:#1a1a1a}
-body{font-family:system-ui;padding:10px;color:#fff}
+body{font-family:system-ui,padding:10px;color:#fff}
 .box{background:#2d2d2d;border-radius:8px;width:100%;margin-bottom:5px;padding:5px 10px}
 .item{display:flex;align-items:center;flex-wrap:nowrap;gap:5px;font-size:clamp(12px,calc((100% - 20px)/76),18px)}
 label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size:11px;line-height:1}
 .ip-group{display:flex;gap:3px;flex:1;min-width:0}
 .nat-item{margin-top:1px;display:flex;align-items:center;gap:6px}
-/* NAT文字和IP字号统一，不再放大 */
 .nat-item label{font-size:12px;font-weight:bold;min-width:auto;}
 .sep{color:#aaa;padding:0 1px}
 .jump-btn{padding:0px 3px;border:none;border-radius:3px;background:#409eff;color:#fff;flex-shrink:0}
 .jump-btn:active{background:#337ecc}
 #dentBox{display:none;}
 
-/* 测速样式适配深色页面 */
 :root {
     --bg-color: #1a1a1a;
     --card-bg: #2d2d2d;
@@ -59,7 +56,7 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     position: relative;
 }
 .thread-col {
-    flex: 0.6;
+    flex: 0.521;
     min-width:60px;
     position: relative;
 }
@@ -114,15 +111,16 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
 }
 #sourceOverlay{
     color:#09b85c;
+    font-weight:bold;
 }
 #threadOverlay{
     color:#409eff;
+    font-weight:bold;
 }
 .hide-overlay{
     display:none;
 }
 
-/* =====自定义下拉CSS【核心控制行高】===== */
 .custom-select{
     width:100%;
     position:relative;
@@ -156,7 +154,6 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     display:none;
 }
 .select-drop.show{display:block;}
-/* 这里控制下拉每行高度，22=紧凑，可调20~26 */
 .select-drop li{
     list-style:none;
     line-height:20px;
@@ -166,7 +163,6 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
 }
 .select-drop li:active{background:#409eff60;}
 
-/* QPS压测新增样式，适配现有布局 */
 .qps-row{
     display:grid;
     grid-template-columns:0.7fr 0.6fr 1fr 120px;
@@ -200,7 +196,6 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     display:flex;
     align-items:center;
     justify-content:center;
-    /* 默认隐藏 */
     display:none;
 }
 .qps-num{
@@ -213,7 +208,7 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     width:100%;
     border-radius:var(--radius);
     border:none;
-    font-size:13px;
+    font-size:16px;
     font-weight:500;
     cursor:pointer;
     background:var(--primary-blue);
@@ -232,7 +227,44 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     display:none;
 }
 
-/* 双栏二维码布局 */
+/* 上传模块样式（深色适配） */
+.upload-row {
+  display:grid;
+  grid-template-columns:0.7fr 0.6fr 1fr 120px;
+  gap:6px;
+  margin-top:4px;
+  align-items: flex-end;
+}
+.upload-row label {
+  flex: 1;
+  min-width: 0;
+}
+.upload-row select {
+  width: 100%;
+  height: var(--item-h); /* 和输入框统一36px */
+  padding:0 4px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  background: #2d2d2d;
+  color: #fff;
+  font-size: 13px;
+}
+.upload-btn {
+  background:var(--primary-blue);
+  border: none;
+  color: white;
+  padding: 8px 35px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: 15px;
+}
+.upload-btn.running {
+  background: #ff3838;
+}
+
 .qrcode-row{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:1px}
 .qrcode-card{background:#2d2d2d;border-radius:10px;padding:0px;display:flex;flex-direction:column;align-items:center;width:100%}
 .card-title{margin-bottom:0px;font-size:15px;color:#ccc;text-align:center}
@@ -292,7 +324,6 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
 </head>
 <body>
 <div class="box" id="mainBox">
-  <!-- 第一行公网：🌐 -->
   <div class="item">
     <label>🌐</label>
     <div class="ip-group">
@@ -300,7 +331,6 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
       <span id="v6">加载中</span>
     </div>
   </div>
-  <!-- 第二行局域网：💻笔记本图标 -->
   <div class="item">
     <label>💻</label>
     <div class="ip-group">
@@ -308,7 +338,6 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
       <span id="localV6">加载中</span>
     </div>
   </div>
-  <!-- NAT字号和正文一致，取消超大 -->
   <div class="item nat-item">
     <label>NAT</label>
     <span id="nat">检测中</span>
@@ -320,16 +349,15 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     <button id="btnlpr" class="jump-btn">/</button>
   </div>
 
-  <!-- 【测速行：NAT下方同行容器内】 -->
+  <!-- 测速行 -->
   <div class="flex-row-fixed">
     <div class="source-col">
         <div class="form-group">
             <div id="sourceOverlay" class="overlay-txt hide-overlay"></div>
-            <!-- 自定义源下拉 替换原select -->
             <div class="custom-select" id="sourceWrap">
-                <div class="select-head" id="sourceHead">源-朝夕光年</div>
+                <div class="select-head" id="sourceHead">朝夕光年</div>
                 <ul class="select-drop" id="sourceDrop">
-                    <li data-val="https://lf5-j1gamecdn-cn.dailygn.com/obj/lf-game-lf/gdl_app_2682/1233880772355.mp4">源-朝夕光年</li>
+                    <li data-val="https://lf5-j1gamecdn-cn.dailygn.com/obj/lf-game-lf/gdl_app_2682/1233880772355.mp4">朝夕光年</li>
                     <li data-val="https://ossweb-img.qq.com/images/lol/web201310/skin/big10001.jpg">英雄联盟.jpg</li>
                     <li data-val="https://game.gtimg.cn/images/cf/cp/a20221219jansecond/t3_prop11.gif">穿越火线.gif</li>
                     <li data-val="https://ossweb-img.qq.com/upload/webplat/info/cf/20230717/653421385804853.png">穿越火线.png</li>
@@ -377,29 +405,48 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
     <div class="thread-col">
         <div class="form-group">
             <div id="threadOverlay" class="overlay-txt hide-overlay"></div>
-            <!-- 线程自定义下拉 -->
             <div class="custom-select" id="threadWrap">
-                <div class="select-head" id="threadHead">线程-1</div>
+                <div class="select-head" id="threadHead">线程1</div>
                 <ul class="select-drop" id="threadDrop">
-                    <li data-val="1">默认线程-1</li>
-                    <li data-val="2">---2</li>
-                    <li data-val="4">---4</li>
-                    <li data-val="8">---8</li>
-                    <li data-val="10">---10</li>
-                    <li data-val="12">---12</li>
-                    <li data-val="14">---14</li>
-                    <li data-val="16">---16</li>
+                    <li data-val="1">线程1</li>
+                    <li data-val="2">线程2</li>
+                    <li data-val="4">线程4</li>
+                    <li data-val="8">线程8</li>
                 </ul>
             </div>
             <input type="hidden" id="threadCount" value="1">
         </div>
     </div>
     <div class="btn-wrap">
-        <button id="actionBtn" class="btn btn-primary" onclick="toggleAction()">RUN</button>
+        <button id="actionBtn" class="btn btn-primary" onclick="toggleAction()">Download</button>
     </div>
   </div>
 
-  <!-- QPS压测行，放在测速栏下一行 -->
+  <!-- ✅ 你要的：Download 下一行 上传压测模块 -->
+  <div class="upload-row">
+    <label>
+      <select id="fileSizeMb">
+        <option value="0.2">0.2MB</option><option value="0.4">0.4MB</option><option value="0.6">0.6MB</option><option value="0.8">0.8MB</option>
+        <option value="1.0">1.0MB</option><option value="1.2">1.2MB</option><option value="1.4">1.4MB</option><option value="1.6">1.6MB</option>
+        <option value="1.8">1.8MB</option><option value="2.0">2.0MB</option>
+      </select>
+    </label>
+    <label>
+      <select id="concurrency">
+        <option value="1">1个</option><option value="2">2个</option><option value="3">3个</option><option value="4">4个</option>
+        <option value="5">5个</option><option value="6">6个</option><option value="7">7个</option><option value="8">8个</option>
+      </select>
+    </label>
+    <label>
+      <select id="loopCount">
+        <option value="500">500次</option><option value="1000">1000次</option>
+        <option value="5000">5000次</option><option value="10000">10000次</option>
+      </select>
+    </label>
+    <button id="startUploadBtn" class="upload-btn">Upload</button>
+  </div>
+
+  <!-- Qps行 -->
   <div class="qps-row">
     <div class="qps-col">
         <input class="qps-input" type="number" id="qps" value="250" min="1" max="250" placeholder="频率≤250">
@@ -413,11 +460,12 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
         <input class="qps-input" type="text" id="host" value=".360.cn" placeholder=".域名">
     </div>
     <div class="qps-col">
-        <button class="qps-start" id="startBtn" onclick="start()">QPS</button>
+        <button class="qps-start" id="startBtn" onclick="start()">Qps</button>
         <button class="qps-stop" id="stopBtn" onclick="stop()">STOP</button>
     </div>
   </div>
 </div>
+
 <div class="box" id="dentBox">
   <div class="item">
     <label>dent</label>
@@ -448,9 +496,8 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
 </div>
 
 <script>
-// =====自定义下拉JS=====
+// 下拉菜单
 (function(){
-    //源下拉
     const sourceWrap = document.getElementById('sourceWrap');
     const sourceHead = document.getElementById('sourceHead');
     const sourceDrop = document.getElementById('sourceDrop');
@@ -473,7 +520,6 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
         }
     })
 
-    //线程下拉
     const threadWrap = document.getElementById('threadWrap');
     const threadHead = document.getElementById('threadHead');
     const threadDrop = document.getElementById('threadDrop');
@@ -493,15 +539,13 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
             threadDrop.classList.remove('show');
         }
     })
-    //空白关闭下拉
     document.body.onclick = ()=>{
         sourceDrop.classList.remove('show');
         threadDrop.classList.remove('show');
     }
 })();
 
-// ==========页面1原有JS开始==========
-// 按钮跳转
+// IP/NAT/二维码/条形码
 document.getElementById('btnIps').onclick = ()=>location.href="ips";
 document.getElementById('btnIpc').onclick = ()=>location.href="ipc";
 document.getElementById('btnlpr').onclick = ()=>location.href="/";
@@ -518,8 +562,6 @@ async function getIP(url, t=1200){
     return null;
   }
 }
-
-// 轮询多节点获取IP，按优先级顺序：ip.sb > ident > ddnspod > icanhazip
 async function getIpByPriority(urlList){
   for(let url of urlList){
     let res = await getIP(url);
@@ -527,23 +569,12 @@ async function getIpByPriority(urlList){
   }
   return null;
 }
-
-// IPv4优先级列表
 const ipv4ApiList = [
-  "https://api-ipv4.ip.sb/ip",
-  "https://v4.ident.me/",
-  "https://ipv4.ddnspod.com/",
-  "https://ipv4.icanhazip.com/"
+  "https://api-ipv4.ip.sb/ip","https://v4.ident.me/","https://ipv4.ddnspod.com/","https://ipv4.icanhazip.com/"
 ];
-// IPv6优先级列表
 const ipv6ApiList = [
-  "https://api-ipv6.ip.sb/ip",
-  "https://v6.ident.me/",
-  "https://ipv6.ddnspod.com/",
-  "https://ipv6.icanhazip.com/"
+  "https://api-ipv6.ip.sb/ip","https://v6.ident.me/","https://ipv6.ddnspod.com/","https://ipv6.icanhazip.com/"
 ];
-
-// 极速内网采集
 function getAllLocalIp(){
   return new Promise(done=>{
     let ipv4List = new Set(),ipv6List=new Set();
@@ -567,7 +598,6 @@ function getAllLocalIp(){
     },550);
   })
 }
-
 function testStun(url, timeout=1600){
   return new Promise(resolve=>{
     const pc = new RTCPeerConnection({iceServers:[{urls:url}]});
@@ -587,13 +617,9 @@ function testStun(url, timeout=1600){
     }
   })
 }
-
 const stunList = [
-  "stun:stun.miwifi.com:3478",
-  "stun:global.stun.twilio.com:3478",
-  "stun:stun.voipbuster.com:3478"
+  "stun:stun.miwifi.com:3478","stun:global.stun.twilio.com:3478","stun:stun.voipbuster.com:3478"
 ];
-
 function renderQR(containerId, content){
   const container = document.getElementById(containerId);
   container.innerHTML = "";
@@ -606,7 +632,6 @@ function renderQR(containerId, content){
     container.innerHTML = "<p style='color:#f00'>生成失败</p>";
   }
 }
-
 function renderBarcode(content){
   const wrap = document.getElementById("barcodeWrap");
   wrap.innerHTML = "";
@@ -622,21 +647,16 @@ function renderBarcode(content){
     wrap.innerHTML = "<p style='color:#f00'>条码拒绝汉字</p>";
   }
 }
-
 (async ()=>{
-  // 使用优先级接口批量获取公网IP
   const out4 = await getIpByPriority(ipv4ApiList);
   const out6 = await getIpByPriority(ipv6ApiList);
-
   document.getElementById("v4").innerText = out4||"获取失败";
   document.getElementById("v6").innerText = out6||"获取失败";
   if(out6) renderQR("qrWrap",`http://[${out6}]:8088`);
-
   const localIpInfo = await getAllLocalIp();
   document.getElementById("localV4").innerText = localIpInfo.localV4;
   document.getElementById("localV6").innerText = localIpInfo.localV6;
 })()
-
 setTimeout(async()=>{
   let localIp = "";
   const tempPc = new RTCPeerConnection({iceTransportPolicy:"all"});
@@ -650,7 +670,6 @@ setTimeout(async()=>{
   await tempPc.createOffer().then(s=>tempPc.setLocalDescription(s));
   await new Promise(d=>setTimeout(d,400));
   tempPc.close();
-
   const resultArr = [];
   for(let item of stunList){
     const ret = await testStun(item);
@@ -669,16 +688,14 @@ setTimeout(async()=>{
   else if(ipSet.size === 1) natDom.innerText = "3端口受限锥";
   else natDom.innerText = "4对称";
 },200)
-
 document.getElementById("textInput").addEventListener("input",e=>{
   const val = e.target.value;
   renderQR("customQrWrap", val);
   renderBarcode(val);
 })
 window.addEventListener("load", ()=>renderBarcode(document.getElementById("textInput").value));
-// ==========页面1原有JS结束==========
 
-// ==========页面2测速JS开始==========
+// 下载测速
 let isDark = false;
 let isRunning = false;
 let abortControllers = [];
@@ -692,35 +709,24 @@ const threadCountInput = document.getElementById('threadCount');
 const actionBtn = document.getElementById('actionBtn');
 const sourceOverlay = document.getElementById('sourceOverlay');
 const threadOverlay = document.getElementById('threadOverlay');
-const btnDefaultTxt = "开测";
-
+const btnDefaultTxt = "Download";
 sourceSelect.addEventListener('change', () => {
     customLinkGroup.classList.toggle('hidden', sourceSelect.value !== 'custom');
 })
-
 function formatByte(size) {
     if (size < 1024) return `${size.toFixed(0)}B`;
     if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)}KB`;
     if (size < 1024 * 1024 * 1024) return `${(size / 1024 / 1024).toFixed(2)}MB`;
     return `${(size / 1024 / 1024 / 1024).toFixed(2)}GB`;
 }
-
-// 已修复：随机参数 + no-store 强制真实下载
 async function fetchLoop(url) {
     const controller = new AbortController();
     abortControllers.push(controller);
     while (isRunning) {
         try {
-            // 破缓存：加随机时间戳
             const timestamp = Date.now() + Math.random();
             const requestUrl = url + (url.includes('?') ? '&' : '?') + 't=' + timestamp;
-            
-            // 强制不走缓存
-            const res = await fetch(requestUrl, { 
-                signal: controller.signal, 
-                cache: 'no-store'
-            });
-            
+            const res = await fetch(requestUrl, { signal: controller.signal, cache: 'no-store' });
             if (!res.body) continue;
             const reader = res.body.getReader();
             while (isRunning) {
@@ -731,27 +737,19 @@ async function fetchLoop(url) {
         } catch (err) { continue; }
     }
 }
-
 function toggleAction() {
     if (isRunning) {
         stopAllTask();
         return;
     }
-    // 开始测速切深色加深主题
     isDark = true;
     document.body.classList.add('dark-theme');
-
     let targetUrl = sourceSelect.value;
     if(targetUrl === 'custom'){
         targetUrl = customLinkInput.value.trim();
-        if(!targetUrl){
-            alert('请填写自定义链接');
-            return;
-        }
+        if(!targetUrl){ alert('请填写自定义链接'); return; }
     }
-
     let threadNum = Number(threadCountInput.value);
-
     isRunning = true;
     totalBytes = lastBytes = 0;
     startTime = Date.now();
@@ -780,13 +778,11 @@ function stopAllTask() {
     actionBtn.textContent = btnDefaultTxt;
     sourceOverlay.classList.add('hide-overlay');
     threadOverlay.classList.add('hide-overlay');
-    //停止测速恢复页面默认深色（移除dark-theme）
     isDark = false;
     document.body.classList.remove('dark-theme');
 }
-// ==========页面2测速JS结束==========
 
-// ==========QPS压测JS新增代码==========
+// QPS
 let qpsTimer = null;
 let reqCount = 0;
 let qpsNum = 250;
@@ -794,30 +790,24 @@ let maxReqCount = 100 * 10000;
 let domainHost = ".360.cn";
 let lastSecond = 0;
 let secondReqCnt = 0;
-
 function $(id){return document.getElementById(id)}
-
 function start(){
     if(qpsTimer) return;
     qpsNum = parseInt($("qps").value) || 250;
     maxReqCount = parseInt($("total").value || 1) * 10000;
     domainHost = $("host").value.trim() || ".360.cn";
-
-    //隐藏输入框，显示统计框
     $("qps").style.display = "none";
     $("total").style.display = "none";
     $("qpsShow").style.display = "flex";
     $("countShow").style.display = "flex";
     $("startBtn").style.display = "none";
     $("stopBtn").style.display = "block";
-
     let perMs = 1000 / qpsNum;
     qpsTimer = setInterval(()=>{
         if(reqCount >= maxReqCount){stop();return;}
         sendReq();
     }, perMs);
 }
-
 function stop(){
     clearInterval(qpsTimer);
     qpsTimer = null;
@@ -825,8 +815,6 @@ function stop(){
     secondReqCnt = 0;
     $("count").innerText = 0;
     $("currentQps").innerText = 0;
-
-    //恢复输入框，隐藏统计框
     $("qps").style.display = "";
     $("total").style.display = "";
     $("qpsShow").style.display = "none";
@@ -834,7 +822,6 @@ function stop(){
     $("startBtn").style.display = "block";
     $("stopBtn").style.display = "none";
 }
-
 function sendReq(){
     reqCount++;
     secondReqCnt++;
@@ -845,13 +832,164 @@ function sendReq(){
         secondReqCnt = 0;
     }
     $("count").innerText = reqCount;
-
     let rand = Math.random().toString(36).substr(2,10);
     let url = `https://${rand}${domainHost}/favicon.ico?${Math.random()}`;
     let img = new Image();
     img.src = url;
     img.onload = img.onerror = ()=>{};
 }
+
+// ==================== 上传压测（合并完成） ====================
+const ENDPOINTS = [
+    {name:'书旗A', url:'https://ocean.shuqireader.com/api/jaccount/user/getTeens'},
+    {name:'书旗B', url:'http://ut2.shuqistat.com/1.gif'},
+    {name:'京东B', url:'https://dsp-test-x.jd.com/adx/sdk'},
+    {name:'京东C', url:'https://dsp-x.jd.com/adx/sdk'},
+    {name:'京东D', url:'https://xlog.jd.com/v1/an'},
+    {name:'字节A', url:'https://mon.zijieapi.com/monitor/collect/c/cloudcontrol/get/'},
+    {name:'趣盟A', url:'https://api.qttunion.com/v5/json'},
+    {name:'穿山A', url:'https://toblog.ctobsnssdk.com/service/2/app_log/'},
+    {name:'TanxA', url:'https://opehs.tanx.com/japi'},
+    {name:'TanxB', url:'https://sdk-config.tanx.com/requestConfigV2'},
+    {name:'快手A', url:'https://open.e.kuaishou.com/rest/e/v3/open/univ'},
+    {name:'快手B', url:'https://open.kuaishouzt.com/rest/zt/appsupport/configs'},
+    {name:'快手C', url:'https://gdfp.gifshow.com/rest/infra/gdfp/a/q'},
+    {name:'头条A', url:'https://log-api.pangolin-sdk-toutiao-b.com/service/2/app_log/'},
+    {name:'头条B', url:'https://usr-api.1sapp.com/report/v1'},
+    {name:'头条C', url:'https://show-api.1sapp.com/report/v1'},
+    {name:'头条D', url:'https://api-access.pangolin-sdk-toutiao.com/api/ad/union/sdk/get_ads/'},
+    {name:'头条E', url:'https://api-access.pangolin-sdk-toutiao1.com/api/ad/union/sdk/stats/batch/'},
+    {name:'拼多A', url:'https://abtk.pinduoduo.com/t.gif'},
+    {name:'淘宝A', url:'https://amdc.m.taobao.com/amdc/mobileDispatch'},
+    {name:'阿里A', url:'https://wgo.mmstat.com/a2oun.page_render_sq_base_vip_day_v3.module_expose'},
+    {name:'阿里B', url:'https://gm.mmstat.com/jstracker.3'},
+    {name:'阿里C', url:'https://arms-retcode.aliyuncs.com/r.png'},
+    {name:'阿里E', url:'https://log.mmstat.com/v.gif'},
+    {name:'阿里F', url:'https://alfa.log-global.aliyuncs.com/logstores/loader/track'},
+    {name:'支付A', url:'https://datagw-edge.alipay.com/loggw/logUpload.do'},
+    {name:'UCA', url:'https://ssp-sdk-config.uc.cn/mediations'},
+    {name:'UCB', url:'https://partner.uc.cn/realtime_config'},
+    {name:'UCC', url:'https://feedback.uc.cn/feedback/api/get_unread_status'},
+    {name:'美团A', url:'https://m3.d.meituan.net/'},
+    {name:'美团B', url:'https://lx0.meituan.com/'},
+    {name:'美团C', url:'https://hlx.meituan.com/'},
+    {name:'大众A', url:'https://catfront.dianping.com/rapi/metricjts'},
+    {name:'个推A', url:'https://sdk-open-phone.getui.com/api.php?format=json&t=1'},
+    {name:'友盟A', url:'https://cnlogs.umengcloud.com/unify_logs'},
+    {name:'友盟B', url:'https://resolve.umeng.com/resolve'},
+    {name:'友盟C', url:'https://utoken.umeng.com/api/updateZdata/v2'},
+    {name:'友盟D', url:'https://cnlogs.umeng.com/unify_logs'},
+    {name:'友盟E', url:'https://aaid.uyunad.com/v1/getaaid'},
+    {name:'火山A', url:'https://abtest.volceapplog.com/service/2/abtest_config/'},
+    {name:'火山B', url:'https://toblog.volceapplog.com/service/2/app_log/'},
+    {name:'火山C', url:'https://klink.volceapplog.com/service/2/app_alert_check/'},
+    {name:'高德A', url:'https://dualstack-logs.amap.com/ws/log/upload'},
+    {name:'数字A', url:'http://iuni.telecome.cn/i/idaa/report'},
+    {name:'腾讯.A', url:'https://mi.gdt.qq.com/api/v3'},
+    {name:'腾讯A', url:'https://gatherer.m.qq.com/gatherer_conf/GetConf'},
+    {name:'腾讯B', url:'https://report.tencentmusic.com/api/v1/crash'},
+    {name:'腾讯C', url:'https://sdkreport.e.qq.com/link_event'},
+    {name:'腾讯D', url:'https://report.kg.qq.com/report'},
+    {name:'腾讯E', url:'https://sdk.e.qq.com/ola/v2'},
+    {name:'腾讯F', url:'https://snowflake.qq.com/ola/v2'},
+    {name:'腾讯G', url:'https://galileotelemetry.tencent.com/collect'},
+    {name:'腾讯H', url:'https://gatherer.m.qq.com/event/report'},
+    {name:'腾讯I', url:'https://browsertdidticket.m.qq.com/'},
+    {name:'腾讯J', url:'https://xs.gdt.qq.com/uid/egs'},
+    {name:'腾讯K', url:'https://h.trace.qq.com/kv'},
+    {name:'腾讯L', url:'https://aegis.qq.com/speed'},
+    {name:'腾讯M', url:'https://otheve.beacon.qq.com/analytics/v2_upload'},
+    {name:'腾讯O', url:'https://sensors.cloud.tencent.com:8106/sa.gif'},
+    {name:'腾讯P', url:'https://copilot.tencent.com/v2/report'},
+    {name:'腾讯Q', url:'https://szmg.qq.com/cgi-bin/log_data.fcg'},
+    {name:'爱奇A', url:'https://msg.qy.net/qos'},
+    {name:'爱奇B', url:'https://oaa.iqiyi.com/trace'},
+    {name:'爱奇C', url:'https://ndct-data.video.iqiyi.com/nd/pb'},
+    {name:'百度A', url:'https://mbd.baidu.com/ztbox'},
+    {name:'百度B', url:'https://sp1.baidu.com/5b1ZeDe5KgQFm2e88IuM_a/mwb2.gif'},
+    {name:'咪咕A', url:'https://report.migufun.com/h5ClientLog/v1.0.5.5/clientEventlog'},
+    {name:'网易A', url:'https://clientlogusf.music.163.com/weapi/feedback/weblog'},
+];
+const startUploadBtn = document.getElementById('startUploadBtn');
+const fileSizeSelect = document.getElementById('fileSizeMb');
+const concurrencySelect = document.getElementById('concurrency');
+const loopCountSelect = document.getElementById('loopCount');
+const defaultSettings = { fileSizeMb: "0.6", concurrency: "3", loopCount: "500" };
+function loadSettings() {
+  fileSizeSelect.value = localStorage.getItem('fileSizeMb') || defaultSettings.fileSizeMb;
+  concurrencySelect.value = localStorage.getItem('concurrency') || defaultSettings.concurrency;
+  loopCountSelect.value = localStorage.getItem('loopCount') || defaultSettings.loopCount;
+}
+function saveSettings() {
+  localStorage.setItem('fileSizeMb', fileSizeSelect.value);
+  localStorage.setItem('concurrency', concurrencySelect.value);
+  localStorage.setItem('loopCount', loopCountSelect.value);
+}
+loadSettings();
+fileSizeSelect.addEventListener('change', saveSettings);
+concurrencySelect.addEventListener('change', saveSettings);
+loopCountSelect.addEventListener('change', saveSettings);
+let uploadControllers = [];
+let uploadTesting = false;
+function pickRandomEndpoints(list, k){
+  const copy = list.slice(); const res = []; k = Math.min(k, copy.length);
+  for(let i=0;i<k;i++){ const idx = Math.floor(Math.random()*copy.length); res.push(copy.splice(idx,1)[0]); }
+  return res;
+}
+function createFile(sizeMb){
+  const size = Math.max(1024, Math.round(sizeMb * 1024 * 1024));
+  const arr = new Uint8Array(size);
+  for(let i=0;i<arr.length;i+=16384){ crypto.getRandomValues(arr.subarray(i, Math.min(i+16384, arr.length))); }
+  return new Blob([arr], {type:'application/octet-stream'});
+}
+async function fetchUpload(target, file, signal){
+  return new Promise((resolve)=>{
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const body = reader.result;
+      const startTime = performance.now();
+      try {
+        const resp = await fetch(target.url, {method:"POST", body:body, signal});
+        const duration = Math.max(0.0001, (performance.now()-startTime)/1000);
+        resolve({status:resp.status,duration,bytes:file.size,bps:0,cors:false});
+      } catch(e) { resolve({status:null,duration:0,bytes:file.size,bps:0,cors:true}); }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+async function runUploadTest(loopCount) {
+    uploadTesting = true;
+    startUploadBtn.innerText = '停止';
+    startUploadBtn.classList.add('running');
+    uploadControllers = [];
+    const concurrency = parseInt(concurrencySelect.value) ||3;
+    const fileSizeMb = parseFloat(fileSizeSelect.value)||0.8;
+    const selected = pickRandomEndpoints(ENDPOINTS, concurrency);
+    const file = createFile(fileSizeMb);
+    const tasks = selected.map((target,i)=>(async()=>{
+        for(let loop=1;loop<=loopCount;loop++){
+            if(!uploadTesting)break;
+            const ctrl = new AbortController();
+            uploadControllers.push(ctrl);
+            try{ await fetchUpload(target,file,ctrl.signal); }catch(e){}
+        }
+    })());
+    await Promise.all(tasks);
+    uploadTesting = false;
+    startUploadBtn.innerText='Upload';
+    startUploadBtn.classList.remove('running');
+    uploadControllers=[];
+}
+startUploadBtn.onclick = ()=>{
+  if(uploadTesting){
+    uploadControllers.forEach(c=>c.abort());
+    uploadTesting=false;
+    startUploadBtn.innerText='Upload';
+    startUploadBtn.classList.remove('running');
+  }else{
+    runUploadTest(+loopCountSelect.value||1);
+  }
+};
 </script>
 </body>
 </html>
