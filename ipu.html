@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="referrer" content="no-referrer">
+  <title>上行网络连通性测试</title>
+  <style>
+    :root {
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --accent: #4f46e5;
+      --muted: #6b7280;
+      --glass: rgba(255,255,255,0.6);
+      --border: #e5e7eb;
+      --text: #111827;
+    }
+    /* 暗黑模式变量 */
+    body.dark {
+      --bg: #121212;
+      --card: #1e1e1e;
+      --accent: #6366f1;
+      --muted: #9ca3af;
+      --glass: rgba(255,255,255,0.1);
+      --border: #333842;
+      --text: #f3f4f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    html, body {
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: var(--bg);
+      color: var(--text);
+      padding: 5px;
+    }
+
+    .layout {
+      width: 100%;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .settings-box {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 14px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .settings-box label {
+      font-size: 14px;
+      color: var(--muted);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1;
+      min-width: 0;
+      text-align: center;
+    }
+
+    input[type=range] {
+      width: 100%;
+      height: 2px; /* 👉 滑轨整体粗细，改这个数值 */
+    }
+
+   
+   -webkit-appearance: none;
+   background: transparent;
+ }
+
+
+    .settings-box span {
+      font-weight: bold;
+      color: var(--text);
+      text-align: center;
+    }
+
+    .btn {
+      background: #2196F3;
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+      transition: background 0.3s ease;
+      flex-shrink: 0;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+    .btn.stop {
+      background: #f44336;
+    }
+    .btn:hover {
+      background: #1976D2;
+    }
+    .btn.stop:hover {
+      background: #d32f2f;
+    }
+
+    /* 主行布局：名称30% 次数25% 已传23% 状态22% */
+    .main-row {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 1px;
+    }
+    .name-text {
+      flex: 0 0 30%;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .metric-item:nth-of-type(1) {
+      flex: 0 0 30%;
+    }
+    .metric-item:nth-of-type(2) {
+      flex: 0 0 20%;
+    }
+    .metric-item:nth-of-type(3) {
+      flex: 0 0 20%;
+    }
+    .metric-item {
+      font-size: 12px;
+      color: var(--text);
+    }
+    .metric-item .value {
+      font-weight: 300;
+    }
+
+    /* 全局强制1fr一行一列，手机/电脑通用 */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 3px;
+      width: 100%;
+    }
+
+    .card {
+      background: var(--card);
+      padding: 1px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 1px;
+    }
+
+    .progress-wrap {
+      background: var(--glass);
+      height: 2px;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.12s linear;
+    }
+
+    footer.small {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    
+    #grid {
+        padding-bottom: 20px;
+    }
+
+    /* 仅微调顶部栏，不修改卡片布局 */
+    @media (max-width: 640px) {
+      .settings-box {
+        padding: 12px;
+        gap: 10px;
+      }
+      .btn {
+        padding: 9px 9px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div class="header">
+    </div>
+<div class="settings-box">
+  <label>
+    文件大小
+    <input id="fileSizeMb" type="range" min="0.5" max="8" step="0.1" />
+    <span id="fileSizeMbValue">1.1</span>
+  </label>
+
+  <label>
+    节点数
+    <input id="concurrency" type="range" min="3" max="18" step="3" />
+    <span id="concurrencyValue">3</span>
+  </label>
+
+  <label>
+    循环
+    <input id="loopCount" type="range" min="1000" max="10000" step="500" />
+    <span id="loopCountValue">1</span>
+  </label>
+  <button id="startBtn" class="btn">Upload</button>
+</div>
+
+    <div id="grid" class="grid"></div>
+  </div>
+  <script async="" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9261423097237110" crossorigin="anonymous"></script>
+<script>
+const ENDPOINTS = [
+    {name:'书旗-A', url:'https://ocean.shuqireader.com/api/jaccount/user/getTeens'},
+    {name:'书旗-B', url:'http://ut2.shuqistat.com/1.gif'},
+    {name:'京东-B', url:'https://dsp-test-x.jd.com/adx/sdk'},
+    {name:'京东-C', url:'https://dsp-x.jd.com/adx/sdk'},
+    {name:'京东-D', url:'https://xlog.jd.com/v1/an'},
+    {name:'字节-A', url:'https://mon.zijieapi.com/monitor/collect/c/cloudcontrol/get/'},
+    {name:'趣盟-A', url:'https://api.qttunion.com/v5/json'},
+    {name:'穿山-A', url:'https://toblog.ctobsnssdk.com/service/2/app_log/'},
+    {name:'Tanx-A', url:'https://opehs.tanx.com/japi'},
+    {name:'Tanx-B', url:'https://sdk-config.tanx.com/requestConfigV2'},
+    {name:'快手-A', url:'https://open.e.kuaishou.com/rest/e/v3/open/univ'},
+    {name:'快手-B', url:'https://open.kuaishouzt.com/rest/zt/appsupport/configs'},
+    {name:'快手-C', url:'https://gdfp.gifshow.com/rest/infra/gdfp/a/q'},
+    {name:'头条-A', url:'https://log-api.pangolin-sdk-toutiao-b.com/service/2/app_log/'},
+    {name:'头条-B', url:'https://usr-api.1sapp.com/report/v1'},
+    {name:'头条-C', url:'https://show-api.1sapp.com/report/v1'},
+    {name:'头条-D', url:'https://api-access.pangolin-sdk-toutiao.com/api/ad/union/sdk/get_ads/'},
+    {name:'头条-E', url:'https://api-access.pangolin-sdk-toutiao1.com/api/ad/union/sdk/stats/batch/'},
+    {name:'拼多-A', url:'https://abtk.pinduoduo.com/t.gif'},
+    {name:'淘宝-A', url:'https://amdc.m.taobao.com/amdc/mobileDispatch'},
+    {name:'阿里-A', url:'https://wgo.mmstat.com/a2oun.page_render_sq_base_vip_day_v3.module_expose'},
+    {name:'阿里-B', url:'https://gm.mmstat.com/jstracker.3'},
+    {name:'阿里-C', url:'https://arms-retcode.aliyuncs.com/r.png'},
+    {name:'阿里-E', url:'https://log.mmstat.com/v.gif'},
+    {name:'阿里-F', url:'https://alfa.log-global.aliyuncs.com/logstores/loader/track'},
+    {name:'支付-A', url:'https://datagw-edge.alipay.com/loggw/logUpload.do'},
+    {name:'UC-A', url:'https://ssp-sdk-config.uc.cn/mediations'},
+    {name:'UC-B', url:'https://partner.uc.cn/realtime_config'},
+    {name:'UC-C', url:'https://feedback.uc.cn/feedback/api/get_unread_status'},
+    {name:'美团-A', url:'https://m3.d.meituan.net/'},
+    {name:'美团-B', url:'https://lx0.meituan.com/'},
+    {name:'美团-C', url:'https://hlx.meituan.com/'},
+    {name:'大众-A', url:'https://catfront.dianping.com/rapi/metricjts'},
+    {name:'个推-A', url:'https://sdk-open-phone.getui.com/api.php?format=json&t=1'},
+    {name:'友盟-A', url:'https://cnlogs.umengcloud.com/unify_logs'},
+    {name:'友盟-B', url:'https://resolve.umeng.com/resolve'},
+    {name:'友盟-C', url:'https://utoken.umeng.com/api/updateZdata/v2'},
+    {name:'友盟-D', url:'https://cnlogs.umeng.com/unify_logs'},
+    {name:'友盟-E', url:'https://aaid.uyunad.com/v1/getaaid'},
+    {name:'火山-A', url:'https://abtest.volceapplog.com/service/2/abtest_config/'},
+    {name:'火山-B', url:'https://toblog.volceapplog.com/service/2/app_log/'},
+    {name:'火山-C', url:'https://klink.volceapplog.com/service/2/app_alert_check/'},
+    {name:'高德-A', url:'https://dualstack-logs.amap.com/ws/log/upload'},
+    {name:'数字-A', url:'http://iuni.telecome.cn/i/idaa/report'},
+    {name:'腾讯-A', url:'https://mi.gdt.qq.com/api/v3'},
+    {name:'腾讯-A', url:'https://gatherer.m.qq.com/gatherer_conf/GetConf'},
+    {name:'腾讯-B', url:'https://report.tencentmusic.com/api/v1/crash'},
+    {name:'腾讯-C', url:'https://sdkreport.e.qq.com/link_event'},
+    {name:'腾讯-D', url:'https://report.kg.qq.com/report'},
+    {name:'腾讯-E', url:'https://sdk.e.qq.com/ola/v2'},
+    {name:'腾讯-F', url:'https://snowflake.qq.com/ola/v2'},
+    {name:'腾讯-G', url:'https://galileotelemetry.tencent.com/collect'},
+    {name:'腾讯-H', url:'https://gatherer.m.qq.com/event/report'},
+    {name:'腾讯-I', url:'https://browsertdidticket.m.qq.com/'},
+    {name:'腾讯-J', url:'https://xs.gdt.qq.com/uid/egs'},
+    {name:'腾讯-K', url:'https://h.trace.qq.com/kv'},
+    {name:'腾讯-L', url:'https://aegis.qq.com/speed'},
+    {name:'腾讯-M', url:'https://otheve.beacon.qq.com/analytics/v2_upload'},
+    {name:'腾讯-O', url:'https://sensors.cloud.tencent.com:8106/sa.gif'},
+    {name:'腾讯-P', url:'https://copilot.tencent.com/v2/report'},
+    {name:'腾讯-Q', url:'https://szmg.qq.com/cgi-bin/log_data.fcg'},
+    {name:'爱奇-A', url:'https://msg.qy.net/qos'},
+    {name:'爱奇-B', url:'https://oaa.iqiyi.com/trace'},
+    {name:'爱奇-C', url:'https://ndct-data.video.iqiyi.com/nd/pb'},
+    {name:'百度-A', url:'https://mbd.baidu.com/ztbox'},
+    {name:'百度-B', url:'https://sp1.baidu.com/5b1ZeDe5KgQFm2e88IuM_a/mwb2.gif'},
+    {name:'咪咕-A', url:'https://report.migufun.com/h5ClientLog/v1.0.5.5/clientEventlog'},
+    {name:'网易-A', url:'https://clientlogusf.music.163.com/weapi/feedback/weblog'},
+];
+
+const grid = document.getElementById('grid');
+const startBtn = document.getElementById('startBtn');
+const fileSizeInput = document.getElementById('fileSizeMb');
+const concurrencyInput = document.getElementById('concurrency');
+const loopCountInput = document.getElementById('loopCount');
+
+const fileSizeMbInput = document.getElementById('fileSizeMb');
+const fileSizeMbValue = document.getElementById('fileSizeMbValue');
+const concurrencyValue = document.getElementById('concurrencyValue');
+const loopCountValue = document.getElementById('loopCountValue');
+
+const defaultSettings = {
+  fileSizeMb: "0.5",
+  concurrency: "3",
+  loopCount: "1000"
+};
+
+function loadSettings() {
+  fileSizeMbInput.value = localStorage.getItem('fileSizeMb') || defaultSettings.fileSizeMb;
+  concurrencyInput.value = localStorage.getItem('concurrency') || defaultSettings.concurrency;
+  loopCountInput.value = localStorage.getItem('loopCount') || defaultSettings.loopCount;
+
+  fileSizeMbValue.textContent = fileSizeMbInput.value;
+  concurrencyValue.textContent = concurrencyInput.value;
+  loopCountValue.textContent = loopCountInput.value;
+}
+
+function saveSettings() {
+  localStorage.setItem('fileSizeMb', fileSizeMbInput.value);
+  localStorage.setItem('concurrency', concurrencyInput.value);
+  localStorage.setItem('loopCount', loopCountInput.value);
+}
+
+loadSettings();
+
+fileSizeMbInput.addEventListener('input', () => {
+  fileSizeMbValue.textContent = fileSizeMbInput.value;
+  saveSettings();
+});
+concurrencyInput.addEventListener('input', () => {
+  concurrencyValue.textContent = concurrencyInput.value;
+  saveSettings();
+});
+loopCountInput.addEventListener('input', () => {
+  loopCountValue.textContent = loopCountInput.value;
+  saveSettings();
+});
+
+let controllers = [];
+let testing = false;
+
+function pickRandomEndpoints(list, k){
+  const copy = list.slice();
+  const res = [];
+  k = Math.min(k, copy.length);
+  for(let i=0;i<k;i++){
+    const idx = Math.floor(Math.random()*copy.length);
+    res.push(copy.splice(idx,1)[0]);
+  }
+  return res;
+}
+
+function createFile(sizeMb){
+  const size = Math.max(1024, Math.round(sizeMb * 1024 * 1024));
+  const arr = new Uint8Array(size);
+  for(let i=0;i<arr.length;i+=16384){
+    crypto.getRandomValues(arr.subarray(i, Math.min(i+16384, arr.length)));
+  }
+  return new Blob([arr], {type:'application/octet-stream'});
+}
+
+function createBox(target){
+  const el = document.createElement('div'); 
+  el.className='card';
+
+  el.innerHTML = `
+    <div class="main-row">
+      <span class="name-text">${escapeHtml(target.name)}</span>
+      <div class="metric-item"><span class="value" data-role="speed">-</span>次</div>
+      <div class="metric-item"><span class="value" data-role="sent">0 MB</span></div>
+      <div class="metric-item"><span class="value" data-role="status">-</span></div>
+    </div>
+    <div class="progress-wrap"><div class="progress" data-role="progress"></div></div>
+  `;
+  return el;
+}
+
+function escapeHtml(s){ return s.replace(/[&<>\"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+
+async function fetchUpload(target, file, signal){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const body = reader.result;
+      const startTime = performance.now();
+      try {
+        const resp = await fetch(target.url, {
+          method: "POST",
+          body: body,
+          signal
+        });
+
+        const duration = Math.max(0.0001, (performance.now() - startTime) / 1000);
+        const bytes = file.size;
+        const bits = bytes * 8;
+        const bps = bits / duration;
+
+        resolve({
+          status: resp.status,
+          duration,
+          bytes,
+          bps,
+          cors: false
+        });
+      } catch (e) {
+        resolve({
+          status: null,
+          duration: 0,
+          bytes: file.size,
+          bps: 0,
+          cors: true
+        });
+      }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+async function runTest(loopCount) {
+    testing = true;
+    document.body.classList.add('dark');
+    startBtn.innerText = 'Stop';
+    startBtn.classList.add('stop');
+    controllers = [];
+
+    const concurrency = parseInt(concurrencyInput.value) || 3;
+    const fileSizeMb = parseFloat(fileSizeInput.value) || 4;
+    const selected = pickRandomEndpoints(ENDPOINTS, concurrency);
+    grid.innerHTML = '';
+    const boxes = selected.map(t => {
+        const b = createBox(t);
+        grid.appendChild(b);
+        return b;
+    });
+
+    const file = createFile(fileSizeMb);
+
+    const tasks = selected.map((target, i) => (async () => {
+        const progressEl = boxes[i].querySelector('[data-role="progress"]');
+        const loopEl = boxes[i].querySelector('[data-role="speed"]');
+        const sentEl = boxes[i].querySelector('[data-role="sent"]');
+        const statusEl = boxes[i].querySelector('[data-role="status"]');
+
+        for (let loop = 1; loop <= loopCount; loop++) {
+            if (!testing) break;
+
+            loopEl.innerText = `${loop}`;
+
+            const ctrl = new AbortController();
+            controllers.push(ctrl);
+
+            let loaded = 0;
+            const total = file.size;
+            const fakeTimer = setInterval(() => {
+                if (loaded < total) {
+                    loaded += total / 20;
+                    const percent = Math.min(100, (loaded / total) * 100);
+                    progressEl.style.width = percent + '%';
+                    sentEl.innerText = (Math.min(loaded, total) / 1024 / 1024).toFixed(2) + ' MB';
+                }
+            }, 200);
+            try {
+                const response = await fetchUpload(target, file, ctrl.signal);
+                clearInterval(fakeTimer);
+                statusEl.innerText = response.status !== null ? response.status : 'CORS';
+                progressEl.style.width = '100%';
+                sentEl.innerText = (file.size / 1024 / 1024).toFixed(2) + 'MB';
+            } catch (e) {
+                clearInterval(fakeTimer);
+                statusEl.innerText = response.status !== null ? response.status : 'CORS';
+                loopEl.innerText = `循环 ${loop} 失败`;
+                console.error('上传失败', e);
+            }
+        }
+    })());
+
+    await Promise.all(tasks);
+
+    testing = false;
+    document.body.classList.remove('dark');
+    startBtn.innerText = 'Upload';
+    startBtn.classList.remove('stop');
+    controllers = [];
+}
+
+startBtn.onclick = ()=>{
+  if(testing){
+    controllers.forEach(c=>c.abort());
+    testing = false;
+    document.body.classList.remove('dark');
+    startBtn.innerText = 'Upload';
+    startBtn.classList.remove('stop');
+  } else {
+    runTest(parseInt(loopCountInput.value) || 1);
+  }
+};
+</script>
+
+<script>
+    document.onkeydown = function() {
+        if (window.event && window.event.keyCode == 123) {
+            event.keyCode = 0;
+            event.returnValue = false;
+        }
+        if (window.event && window.event.keyCode == 13) {
+            window.event.keyCode = 505;
+        }
+        if (window.event && window.event.keyCode == 8) {
+            window.event.returnValue = false;
+        }
+    }
+
+    document.oncontextmenu = function(event) {
+        if (window.event) {
+            event = window.event;
+        }
+        try {
+            var the = event.srcElement;
+            if (!((the.tagName == "INPUT" && the.type.toLowerCase() == "text") || the.tagName == "TEXTAREA")) {
+                return false;
+            }
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }
+</script>
+</body>
+</html>
