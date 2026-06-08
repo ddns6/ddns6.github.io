@@ -418,23 +418,22 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
   <div class="upload-row">
     <div class="upload-col">
       <div class="custom-select" id="fileSizeWrap">
-        <div class="select-head" id="fileSizeHead">0.8MB</div>
+        <div class="select-head" id="fileSizeHead">0.5MB</div>
         <ul class="select-drop" id="fileSizeDrop">
-          <li data-val="0.6">0.6MB</li><li data-val="0.8">0.8MB</li>
-          <li data-val="1.0">1.0MB</li><li data-val="1.6">1.6MB</li>
-          <li data-val="1.8">1.8MB</li><li data-val="2.0">2.0MB</li>
+          <li data-val="0.5">0.5MB</li><li data-val="1.0">1.0MB</li>
+          <li data-val="1.5">1.5MB</li><li data-val="2.0">2.0MB</li>
         </ul>
       </div>
-      <input type="hidden" id="fileSizeMb" value="0.8">
+      <input type="hidden" id="fileSizeMb" value="0.5">
     </div>
     <div class="upload-col">
       <div class="custom-select" id="concurrencyWrap">
         <div class="select-head" id="concurrencyHead">6个</div>
         <ul class="select-drop" id="concurrencyDrop">
           <li data-val="6">6个</li>
-          <li data-val="7">7个</li>
-          <li data-val="8">8个</li>
           <li data-val="9">9个</li>
+          <li data-val="12">12个</li>
+          <li data-val="15">15个</li>
         </ul>
       </div>
       <input type="hidden" id="concurrency" value="6">
@@ -443,9 +442,7 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
       <div class="custom-select" id="loopCountWrap">
         <div class="select-head" id="loopCountHead">1000次</div>
         <ul class="select-drop" id="loopCountDrop">
-          <li data-val="100">100次</li>
           <li data-val="1000">1000次</li>
-          <li data-val="10000">10000次</li>
         </ul>
       </div>
       <input type="hidden" id="loopCount" value="1000">
@@ -1016,7 +1013,7 @@ const startUploadBtn = document.getElementById('startUploadBtn');
 const fileSizeSelect = document.getElementById('fileSizeMb');
 const concurrencySelect = document.getElementById('concurrency');
 const loopCountSelect = document.getElementById('loopCount');
-const defaultSettings = { fileSizeMb: "0.8", concurrency: "6", loopCount: "1000" };
+const defaultSettings = { fileSizeMb: "0.5", concurrency: "6", loopCount: "1000" };
 function loadSettings() {
   fileSizeSelect.value = localStorage.getItem('fileSizeMb') || defaultSettings.fileSizeMb;
   concurrencySelect.value = localStorage.getItem('concurrency') || defaultSettings.concurrency;
