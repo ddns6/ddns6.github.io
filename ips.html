@@ -79,10 +79,14 @@
     </div>
     <div class="loading">加载中...</div>
     <div class="navbar">
-        <a href="#" class="nav-btn active-btn" data-url="https://speed.qlu.edu.cn/">齐鲁测速</a>
-        <a href="#" class="nav-btn" data-url="https://speed.nuaa.edu.cn/">南航测速</a>
-        <a href="#" class="nav-btn" data-url="https://fs.nju.edu.cn/speed/">南光测速</a>
-        <a href="#" class="nav-btn" data-url="https://test.nju.edu.cn/">南大测速</a>
+        <a href="#" class="nav-btn active-btn" data-url="https://speed.qlu.edu.cn/">齐鲁</a>
+        <a href="#" class="nav-btn" data-url="https://fs.nju.edu.cn/speed/">南光</a>
+        <a href="#" class="nav-btn" data-url="http://speedtest.xcvtc.edu.cn/">宣城</a>
+        <a href="#" class="nav-btn" data-url="http://speedtest.zju.edu.cn/">浙大</a>
+        <!-- 给这两个加上 target="_blank"，并加上标记 -->
+        <a href="https://test.nju.edu.cn/" target="_blank" class="nav-btn open-new-tab">南大⇗</a>
+        <a href="https://librespeed.speedtestcustom.com/" target="_blank" class="nav-btn open-new-tab">lib⇗</a>
+        <a href="https://www.speedtest.net/zh-Hans?a=1" target="_blank" class="nav-btn open-new-tab">ST⇗</a>
     </div>
 </div>
 
@@ -93,6 +97,10 @@ const loading = document.querySelector('.loading');
 
 navButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
+        // 如果是新窗口打开的按钮，直接 return，不执行iframe逻辑
+        if (btn.classList.contains('open-new-tab')) {
+            return;
+        }
         e.preventDefault();
         // 切换激活样式
         navButtons.forEach(b => b.classList.remove('active-btn'));
@@ -103,7 +111,7 @@ navButtons.forEach(btn => {
         const url = btn.dataset.url;
         mainFrame.src = url;
     });
-}); // 这里补全了之前漏掉的闭合括号！
+});
 
 // 加载完成隐藏提示
 mainFrame.onload = function(){
