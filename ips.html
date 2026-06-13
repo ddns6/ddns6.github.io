@@ -65,10 +65,51 @@
             display:none;
             z-index:1000;
         }
+        /* 倒计时弹窗样式 */
+        .countdown-modal{
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            padding: 20px 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.2);
+            z-index: 1001;
+            display: none;
+            text-align: center;
+        }
+        .modal-tip{
+            font-size: 15px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .count-text{
+            color: #ff5722;
+            font-weight: bold;
+        }
+        .download-btn{
+            display: inline-block;
+            padding: 8px 18px;
+            margin: 0 8px;
+            background: #ff7e00;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
         /* 小屏适配 */
         @media (max-width:480px){
             .navbar{height:50px;}
             .nav-btn{font-size:12px;line-height:50px;}
+            .countdown-modal{
+                width: 85%;
+                padding: 8px;
+            }
+            .download-btn{
+                margin: 6px 0px;
+                padding: 7px 12px;
+            }
         }
     </style>
 </head>
@@ -78,17 +119,24 @@
         <iframe id="mainFrame" src="https://speed.qlu.edu.cn/" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
     </div>
     <div class="loading">加载中...</div>
+
+    <!-- 3秒倒计时弹窗 -->
+    <div class="countdown-modal" id="countModal">
+        <div class="modal-tip">下载倒计时<span class="count-text" id="countNum">3</span>秒</div>
+        <a href="https://dlcv2.cnspeedtest.cn:8443/TaierAndroid/download/globalspeed_down.html" 
+           class="download-btn" target="_blank">全球网测</a>
+        <a href="https://m.oppojia.com/app/52638070.html"
+           class="download-btn" target="_blank">花瓣测速</a>
+        <a href="https://yxssp.lanzouv.com/b0q2llej" 
+           class="download-btn" target="_blank">Ookla.afia</a>
+    </div>
+
     <div class="navbar">
         <a href="#" class="nav-btn active-btn" data-url="https://speed.qlu.edu.cn/">齐鲁</a>
         <a href="#" class="nav-btn" data-url="https://fs.nju.edu.cn/speed/">南光</a>
-        <a href="#" class="nav-btn" data-url="https://speedtest.zju.edu.cn/">浙大</a>
-        <!-- 给这两个加上 target="_blank"，并加上标记 -->
-        <a href="https://test.nju.edu.cn/" target="_blank" class="nav-btn open-new-tab">南大⇗</a>
         <a href="https://speedtest.im/" target="_blank" class="nav-btn open-new-tab">一键⇗</a>
         <a href="https://librespeed.speedtestcustom.com/" target="_blank" class="nav-btn open-new-tab">lib⇗</a>
-        <a href="https://www.speedtest.net/zh-Hans?a=1" target="_blank" class="nav-btn open-new-tab">ST⇗</a>
         <a href="https://base.hjq.komect.com/digitalhome/speedDetectHjq/index.html#/" target="_blank" class="nav-btn open-new-tab">移动⇗</a>
-        <a href="https://dlcv2.cnspeedtest.cn:8443/TaierAndroid/download/globalspeed_down.html" target="_blank" class="nav-btn open-new-tab">全球⇗</a>
     </div>
 </div>
 
@@ -96,27 +144,60 @@
 const navButtons = document.querySelectorAll('.nav-btn');
 const mainFrame = document.getElementById('mainFrame');
 const loading = document.querySelector('.loading');
+const countModal = document.getElementById('countModal');
+const countNum = document.getElementById('countNum');
+let timer = null;
+let second = 3;
+// 标记：仅首次加载弹窗
+let firstLoad = true;
+
+// 统一关闭弹窗+清除定时器
+function closeModal() {
+    clearInterval(timer);
+    countModal.style.display = 'none';
+}
 
 navButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
-        // 如果是新窗口打开的按钮，直接 return，不执行iframe逻辑
         if (btn.classList.contains('open-new-tab')) {
             return;
         }
         e.preventDefault();
-        // 切换激活样式
         navButtons.forEach(b => b.classList.remove('active-btn'));
         btn.classList.add('active-btn');
-        // 显示加载
         loading.style.display = 'block';
-        // 切换地址
-        const url = btn.dataset.url;
-        mainFrame.src = url;
+        
+        closeModal();
+        second = 3;
+        countNum.innerText = second;
+        mainFrame.src = btn.dataset.url;
+        // 切换页面后，不再触发弹窗
+        firstLoad = false;
     });
 });
 
-// 加载完成隐藏提示
+// 点击下载按钮立即关闭弹窗
+document.querySelectorAll('.download-btn').forEach(btn => {
+    btn.addEventListener('click', closeModal);
+});
+
+// iframe加载完成
 mainFrame.onload = function(){
+    closeModal();
+    second = 3;
+    countNum.innerText = second;
+
+    // 只有首次加载才弹出倒计时弹窗
+    if (firstLoad) {
+        countModal.style.display = 'block';
+        timer = setInterval(() => {
+            second--;
+            countNum.innerText = second;
+            if(second <= 0){
+                closeModal();
+            }
+        }, 1000);
+    }
     loading.style.display = 'none';
 }
 </script>
