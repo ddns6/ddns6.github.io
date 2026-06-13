@@ -103,7 +103,7 @@
             .navbar{height:50px;}
             .nav-btn{font-size:12px;line-height:50px;}
             .countdown-modal{
-                width: 85%;
+                width: 95%;
                 padding: 8px;
             }
             .download-btn{
@@ -122,13 +122,15 @@
 
     <!-- 3秒倒计时弹窗 -->
     <div class="countdown-modal" id="countModal">
-        <div class="modal-tip">下载倒计时<span class="count-text" id="countNum">3</span>秒</div>
+        <div class="modal-tip">选择倒计时<span class="count-text" id="countNum">3</span>秒</div>
+        <a href="https://yxssp.lanzouv.com/b0q2llej" 
+           class="download-btn" target="_blank">Ookla.afia</a>
         <a href="https://dlcv2.cnspeedtest.cn:8443/TaierAndroid/download/globalspeed_down.html" 
            class="download-btn" target="_blank">全球网测</a>
         <a href="https://m.oppojia.com/app/52638070.html"
            class="download-btn" target="_blank">花瓣测速</a>
-        <a href="https://yxssp.lanzouv.com/b0q2llej" 
-           class="download-btn" target="_blank">Ookla.afia</a>
+        <a href="https://base.hjq.komect.com/digitalhome/speedDetectHjq/index.html#/" 
+           class="download-btn" target="_blank">爱家网页</a>
     </div>
 
     <div class="navbar">
@@ -136,7 +138,6 @@
         <a href="#" class="nav-btn" data-url="https://fs.nju.edu.cn/speed/">南光</a>
         <a href="https://speedtest.im/" target="_blank" class="nav-btn open-new-tab">一键⇗</a>
         <a href="https://librespeed.speedtestcustom.com/" target="_blank" class="nav-btn open-new-tab">lib⇗</a>
-        <a href="https://base.hjq.komect.com/digitalhome/speedDetectHjq/index.html#/" target="_blank" class="nav-btn open-new-tab">移动⇗</a>
     </div>
 </div>
 
@@ -148,10 +149,8 @@ const countModal = document.getElementById('countModal');
 const countNum = document.getElementById('countNum');
 let timer = null;
 let second = 3;
-// 标记：仅首次加载弹窗
 let firstLoad = true;
 
-// 统一关闭弹窗+清除定时器
 function closeModal() {
     clearInterval(timer);
     countModal.style.display = 'none';
@@ -171,12 +170,10 @@ navButtons.forEach(btn => {
         second = 3;
         countNum.innerText = second;
         mainFrame.src = btn.dataset.url;
-        // 切换页面后，不再触发弹窗
         firstLoad = false;
     });
 });
 
-// 点击下载按钮立即关闭弹窗
 document.querySelectorAll('.download-btn').forEach(btn => {
     btn.addEventListener('click', closeModal);
 });
@@ -187,7 +184,6 @@ mainFrame.onload = function(){
     second = 3;
     countNum.innerText = second;
 
-    // 只有首次加载才弹出倒计时弹窗
     if (firstLoad) {
         countModal.style.display = 'block';
         timer = setInterval(() => {
