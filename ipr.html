@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>厂密速查&设备跳转</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            padding: 8px;
+            min-height: 100vh;
+        }
+        .container {
+            background: #fff;
+            padding: 14px;
+            border-radius: 10px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+        .info-row {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 16px;
+            align-items: center;
+            height: 42px;
+        }
+        /* 两栏 4:6 比例 */
+        .col-left {
+            flex: 4;
+            position: relative;
+        }
+        .col-right {
+            flex: 6;
+        }
+        .info-row select,
+        .info-row .text-box {
+            width: 100%;
+            height: 42px;
+            padding: 0 12px;
+            font-size: 15px;
+            outline: none;
+            display: flex;
+            align-items: center;
+            color: #999;
+            border: none;
+            background: transparent;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .col-left::after {
+            display: none;
+        }
+        .text-box.has-data {
+            color: #333;
+        }
+        .select-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #deviceSelect {
+            flex: 1;
+            height: 42px;
+            padding: 0 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            outline: none;
+        }
+        #deviceSelect:focus {
+            border-color: #409eff;
+        }
+        .jump-btn {
+            height: 42px;
+            padding: 0 20px;
+            background-color: #409eff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .jump-btn:hover {
+            background-color: #337ecc;
+        }
+        .tip-text {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+            min-height: 24px;
+            padding-left: 4px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-row">
+            <div class="col-left">
+                <select id="operatorSel">
+                    <option value="">厂商</option>
+                    <option value="cmcc">移动</option>
+                    <option value="cu">联通</option>
+                    <option value="telecom">电信</option>
+                </select>
+            </div>
+            <div class="col-right text-box" id="pwdBox">密码</div>
+        </div>
+
+        <div class="select-row">
+            <select id="deviceSelect">
+                <option value="">请选择设备</option>
+                <option value="hs8145x6">hs8145x6</option>
+                <option value="hn8545">hn8545</option>
+                <option value="G7615">G7615</option>
+            </select>
+            <button class="jump-btn" id="jumpBtn">跳一跳</button>
+        </div>
+
+        <div class="tip-text" id="tipBox"></div>
+    </div>
+
+    <script>
+        const operatorConfig = {
+            cmcc: {
+                user: "CMCCAdmin",
+                pwd: "aDm8H%MdA"
+            },
+            cu: {
+                user: "CUAdmin",
+                pwd: "CUAdmin"
+            },
+            telecom: {
+                user: "telecomadmin",
+                pwd: "admintelecom/nE7jA%5m"
+            }
+        };
+
+        const deviceConfig = {
+            hs8145x6: {
+                tip: "这是一个hs华为设备",
+                url: "http://192.168.1.1/a"
+            },
+            hn8545: {
+                tip: "这是一个万兆设备",
+                url: "http://192.168.1.1/hi"
+            },
+            G7615: {
+                tip: "中心垃圾",
+                url: "http://192.168.1.1/fg"
+            }
+        };
+
+        const operatorSel = document.getElementById('operatorSel');
+        const pwdBox = document.getElementById('pwdBox');
+        const deviceSel = document.getElementById('deviceSelect');
+        const tipBox = document.getElementById('tipBox');
+        const jumpBtn = document.getElementById('jumpBtn');
+
+        operatorSel.addEventListener('change', function () {
+            const val = this.value;
+            if (val) {
+                this.options[0].text = operatorConfig[val].user;
+                pwdBox.innerText = operatorConfig[val].pwd;
+                pwdBox.classList.add('has-data');
+                this.selectedIndex = 0;
+            } else {
+                this.options[0].text = "厂商";
+                pwdBox.innerText = "密码";
+                pwdBox.classList.remove('has-data');
+            }
+        });
+
+        function showDeviceTip() {
+            const val = deviceSel.value;
+            tipBox.innerText = val ? deviceConfig[val].tip : "";
+        }
+        deviceSel.addEventListener('change', showDeviceTip);
+
+        jumpBtn.addEventListener('click', function () {
+            const val = deviceSel.value;
+            if (val) {
+                window.open(deviceConfig[val].url, '_blank');
+            } else {
+                alert("请先选择设备");
+            }
+        });
+    </script>
+</body>
+</html>
