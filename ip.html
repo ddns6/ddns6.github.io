@@ -163,70 +163,6 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
 }
 .select-drop li:active{background:#409eff60;}
 
-.qps-row{
-    display:grid;
-    grid-template-columns:0.7fr 0.6fr 1fr 120px;
-    gap:6px;
-    margin-top:4px;
-}
-.qps-col{
-    display:flex;
-    flex-direction:column;
-    position:relative;
-}
-.qps-input{
-    width:100%;
-    height:var(--item-h);
-    border-radius:var(--radius);
-    border:1px solid var(--border-color);
-    background:var(--card-bg);
-    color:var(--text-main);
-    padding:0 8px;
-    font-size:13px;
-}
-.qps-input::placeholder{
-    color:#999;
-    font-size:9px;
-}
-.qps-stat{
-    width:100%;
-    height:var(--item-h);
-    background:var(--progress-bg);
-    border-radius:var(--radius);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    display:none;
-}
-.qps-num{
-    font-size:16px;
-    font-weight:bold;
-    color:#2574f7;
-}
-.qps-start{
-    height:var(--item-h);
-    width:100%;
-    border-radius:var(--radius);
-    border:none;
-    font-size:16px;
-    font-weight:500;
-    cursor:pointer;
-    background:var(--primary-blue);
-    color:#fff;
-}
-.qps-stop{
-    height:var(--item-h);
-    width:100%;
-    border-radius:var(--radius);
-    border:none;
-    font-size:13px;
-    font-weight:500;
-    cursor:pointer;
-    background:var(--danger-red);
-    color:#fff;
-    display:none;
-}
-
 /* 上传模块样式（深色适配） */
 .upload-row {
   display:grid;
@@ -373,7 +309,7 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
                     <li data-val="https://wwwstatic.vivo.com.cn/vivoportal/files/resource/funtouch/1651200648928/images/os2-jude-video.mp4">vivo.mp4</li>
                     <li data-val="https://cd.pddpic.com/android_dev/2023-07-28/5c04772968aee57ca690fbe1e7f29467.apk">拼多多.apk</li>
                     <li data-val="https://static.pddpic.com/assets/js/react_pdd_50c6d8bdb252d256ae20_1026.js">拼多多.js</li>
-                    <li data-val="https://upos-sz-static.bilivideo.com/ssaxcode/m201120a222dw4bejcrhrq3gt815s4zd-1-SiteTool_1080.mp4">B站</li>
+                    <li data-val="https://upos-sz-static.bilivideo.com/ssaxcode/m201120a222dw4bejcrhrq3gt815s4zd-1-SiteTool_1080.mp4">B站.mp4</li>
                     <li data-val="https://vod-origin-rjzy.gdoss.xstore.ctyun.cn/f9ea5388dc0447aa88a5b92f07f1a8f7.mp4">天翼云.mp4</li>
                     <li data-val="https://res-static.hc-cdn.cn/cloudbu-site/china/zh-cn/HWCdeveloper/shemei/bilibili-qc.jpg">华为云.jpg</li>
                     <li data-val="https://m.360buyimg.com/seckillcms/jfs/t1/155683/19/46720/143938/66de6069Fcbca5419/a04efd5dd680737d.png">京东.png</li>
@@ -452,25 +388,6 @@ label{flex-shrink:0;min-width:24px;font-weight:bold;white-space:nowrap;font-size
       <input type="hidden" id="loopCount" value="1000">
     </div>
     <button id="startUploadBtn" class="upload-btn">Upload</button>
-  </div>
-
-  <!-- Qps行 -->
-  <div class="qps-row">
-    <div class="qps-col">
-        <input class="qps-input" type="number" id="qps" value="250" min="1" max="250" placeholder="频率≤250">
-        <div class="qps-stat" id="qpsShow"><span class="qps-num" id="currentQps">0</span></div>
-    </div>
-    <div class="qps-col">
-        <input class="qps-input" type="number" id="total" value="100" min="1" placeholder="总请求(万次)">
-        <div class="qps-stat" id="countShow"><span class="qps-num" id="count">0</span></div>
-    </div>
-    <div class="qps-col">
-        <input class="qps-input" type="text" id="host" value=".360.cn" placeholder=".域名">
-    </div>
-    <div class="qps-col">
-        <button class="qps-start" id="startBtn" onclick="start()">Qps</button>
-        <button class="qps-stop" id="stopBtn" onclick="stop()">STOP</button>
-    </div>
   </div>
 </div>
 
@@ -882,63 +799,6 @@ function stopAllTask() {
     threadOverlay.classList.add('hide-overlay');
     isDark = false;
     document.body.classList.remove('dark-theme');
-}
-
-// QPS
-let qpsTimer = null;
-let reqCount = 0;
-let qpsNum = 250;
-let maxReqCount = 100 * 10000;
-let domainHost = ".360.cn";
-let lastSecond = 0;
-let secondReqCnt = 0;
-function $(id){return document.getElementById(id)}
-function start(){
-    if(qpsTimer) return;
-    qpsNum = parseInt($("qps").value) || 250;
-    maxReqCount = parseInt($("total").value || 1) * 10000;
-    domainHost = $("host").value.trim() || ".360.cn";
-    $("qps").style.display = "none";
-    $("total").style.display = "none";
-    $("qpsShow").style.display = "flex";
-    $("countShow").style.display = "flex";
-    $("startBtn").style.display = "none";
-    $("stopBtn").style.display = "block";
-    let perMs = 1000 / qpsNum;
-    qpsTimer = setInterval(()=>{
-        if(reqCount >= maxReqCount){stop();return;}
-        sendReq();
-    }, perMs);
-}
-function stop(){
-    clearInterval(qpsTimer);
-    qpsTimer = null;
-    reqCount = 0;
-    secondReqCnt = 0;
-    $("count").innerText = 0;
-    $("currentQps").innerText = 0;
-    $("qps").style.display = "";
-    $("total").style.display = "";
-    $("qpsShow").style.display = "none";
-    $("countShow").style.display = "none";
-    $("startBtn").style.display = "block";
-    $("stopBtn").style.display = "none";
-}
-function sendReq(){
-    reqCount++;
-    secondReqCnt++;
-    let now = Math.floor(Date.now()/1000);
-    if(now !== lastSecond){
-        lastSecond = now;
-        $("currentQps").innerText = secondReqCnt;
-        secondReqCnt = 0;
-    }
-    $("count").innerText = reqCount;
-    let rand = Math.random().toString(36).substr(2,10);
-    let url = `https://${rand}${domainHost}/favicon.ico?${Math.random()}`;
-    let img = new Image();
-    img.src = url;
-    img.onload = img.onerror = ()=>{};
 }
 
 // ==================== 上传压测（合并完成） ====================
