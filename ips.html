@@ -121,7 +121,7 @@
     <div class="loading">加载中...</div>
 
     <div class="countdown-modal" id="countModal">
-        <div class="modal-tip">•开溜⏱️<span class="count-text" id="countNum">3</span>•</div>
+        <div class="modal-tip">•开溜⏱️<span class="count-text" id="countNum">5</span>•</div>
         <div>
             <a href="https://yxssp.lanzouv.com/b0q2llej" class="download-btn" target="_blank">Ookla.afia</a>
             <a href="https://dlcv2.cnspeedtest.cn:8443/TaierAndroid/download/globalspeed_down.html" class="download-btn" target="_blank">全球网测</a>
@@ -135,16 +135,15 @@
             <a href="https://download.bitcomet.com/apk/" class="download-btn" target="_blank">比特彗星</a>
         </div>
         <div style="margin-top:-9px;">
-            <a href="https://mirrors6.tuna.tsinghua.edu.cn/deepin-cd/" class="download-btn" target="_blank">清华源</a>
+            <a href="https://mirrors6.tuna.tsinghua.edu.cn/deepin-cd/" class="download-btn" target="_blank">清华</a>
             <a href="https://mirrors.bfsu.edu.cn/deepin-cd/" class="download-btn" target="_blank">北外</a>
             <a href="https://mirrors.nju.edu.cn/deepin-cd/" class="download-btn" target="_blank">南大</a>
-            <a href="https://mirrors.ustc.edu.cn/deepin-cd/releases/" class="download-btn" target="_blank">中科源</a>
+            <a href="https://mirrors.ustc.edu.cn/deepin-cd/releases/" class="download-btn" target="_blank">中科</a>
         </div>
         <div style="margin-top:-9px;">
             <a href="http://h5.appstore.vivo.com.cn/#/" class="download-btn" target="_blank">v</a>
             <a href="https://m.wandoujia.com/" class="download-btn" target="_blank">豌</a>
             <a href="https://www.yxssp.com/" class="download-btn" target="_blank">异</a>
-            <a href="https://www.ghxi.com/category/all/android" class="download-btn" target="_blank">果</a>
             <a href="https://apkpure.com/cn/search" class="download-btn" target="_blank">a</a>
         </div>
     </div>
@@ -164,7 +163,7 @@ const loading = document.querySelector('.loading');
 const countModal = document.getElementById('countModal');
 const countNum = document.getElementById('countNum');
 let timer = null;
-let second = 3;
+let second = 5;
 let firstLoad = true;
 
 function closeModal() {
@@ -183,7 +182,7 @@ navButtons.forEach(btn => {
         loading.style.display = 'block';
         
         closeModal();
-        second = 3;
+        second = 5;
         countNum.innerText = second;
         mainFrame.src = btn.dataset.url;
         firstLoad = false;
@@ -197,7 +196,7 @@ document.querySelectorAll('.download-btn').forEach(btn => {
 // iframe加载完成
 mainFrame.onload = function(){
     closeModal();
-    second = 3;
+    second = 5;
     countNum.innerText = second;
 
     if (firstLoad) {
